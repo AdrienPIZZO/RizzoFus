@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class BoardManager : MonoBehaviour
 {
-    public Chosen[,] chosens{set;get;}
+    public GameObject[,] element{set;get;} // a terme remplacer par classe mere element pour pouvoir enregistrer obstacles
 
     private const float TILE_SIZE = 1.0f;
     private const float TILE_OFFSET = 0.5f;
@@ -13,8 +13,10 @@ public class BoardManager : MonoBehaviour
     private int selectionX = -1;
     private int selectionY = -1;
 
+    private int playerTurn = 0;
+
     public List<GameObject> chosensPrefabs;
-    public List<GameObject> activeChosen = new List<GameObject>();
+    public List<Chosen> players;
 
     private void Start()
     {
@@ -23,18 +25,24 @@ public class BoardManager : MonoBehaviour
 
     private void Update()
     {
+        /*
         UpdateSelection();
         DrawBoard();
+
+        if(Input.GetMouseButtonDown(0) && IsTileAvailable()){
+            //Debug.Log("clic ok");
+            ChosenMove(selectionX, selectionY);
+        }*/
     }
 
     private void UpdateSelection()
-    {
+    {  
         if(!Camera.main)
             return;
         
         RaycastHit hit;
         if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 25.0f, LayerMask.GetMask("Plane"))){
-            Debug.Log(hit.point);
+            //Debug.Log(hit.point);
             selectionX = (int)hit.point.x;
             selectionY = (int)hit.point.z;
         }
@@ -45,21 +53,21 @@ public class BoardManager : MonoBehaviour
         }
     }
  
-    private void SpawnChosen(int index, Vector3 position)
+    private void SpawnChosen(int indexPrefab, int x, int z)
     {
-        GameObject go = Instantiate(chosensPrefabs[index], position, Quaternion.identity) as GameObject;
+        GameObject go = Instantiate(chosensPrefabs[indexPrefab], GetTileCenter(x, z) + Vector3.up * chosensPrefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2, Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
-        chosens[(int)position.x, (int)position.z] = go.GetComponent<Chosen>();
-        chosens[(int)position.x, (int)position.z].SetPosition((int)position.x, (int)position.z);
-        activeChosen.Add(go);
+        element[x, z] = go;
+        go.GetComponent<Chosen>().SetPosition(x, z);
+        players.Add(go.GetComponent<Chosen>());
     }
 
     private void SpawnAllChosen()
     {
-        activeChosen = new List<GameObject> ();
-        chosens = new Chosen[NB_TILES, NB_TILES];
-        SpawnChosen(0, (Vector3.right + Vector3.forward + Vector3.up) * TILE_SIZE / 2);
-        SpawnChosen(1, (Vector3.right + Vector3.forward) * TILE_SIZE * 8 + (-Vector3.right - Vector3.forward + Vector3.up) * TILE_SIZE / 2);
+        players = new List<Chosen>();
+        element = new GameObject[NB_TILES, NB_TILES];
+        SpawnChosen(0, 0, 0);
+        SpawnChosen(0, 7, 7);
     } 
 
     private void DrawBoard()
@@ -84,5 +92,32 @@ public class BoardManager : MonoBehaviour
         }
     }
 
+    private Vector3 GetTileCenter(int x, int z)
+    {
+        Vector3 origin = Vector3.zero;
+        origin.x += (TILE_SIZE * x) + TILE_OFFSET;
+        origin.z += (TILE_SIZE * z) + TILE_OFFSET;
+        return origin;
+    }
+
+    private bool IsTileAvailable()
+    {
+        return selectionX >= 0 && selectionY >= 0 &&                        //Check if mouse has moved at least one time on the board
+        element[selectionX, selectionY] == null;                            //Check if there is no object on the tile we are trying to move on
+    }
+
+    private void ChosenMove(int x, int z)
+    {  
+        element[x, z] = element[players[playerTurn].currentX, players[playerTurn].currentZ];
+        element[players[playerTurn].currentX, players[playerTurn].currentZ] = null;
+        players[playerTurn].SetPosition(x, z);
+        element[x, z].transform.position = GetTileCenter(x, z)  + Vector3.up * chosensPrefabs[0].GetComponent<Renderer>().bounds.size.y / 2;
+    }
+
+    public void EndTurn()
+    {
+        Debug.Log("clic ok");
+        playerTurn = (playerTurn + 1) % players.Count;
+    }
 }
 
