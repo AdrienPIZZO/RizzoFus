@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class BoardManager : MonoBehaviour
 {
@@ -18,21 +19,54 @@ public class BoardManager : MonoBehaviour
     public List<GameObject> chosensPrefabs;
     public List<Chosen> players;
 
+    private Node root;
+    private List<Node> leaves = new List<Node>();
+
     private void Start()
     {
-       SpawnAllChosen();
+        int MP = 6;
+        SpawnAllChosen();
+        root = new Node(0, 0);
+        // We try to find the quickest path from current x/z to targeted x/z (0,0 to x,z)
+        Node leaf = PathFinding(root, 2, 2, range(root.x, root.z, 2, 2));  //We try first with number of MP = Range then we increase this number
+        MP -= range(root.x, root.z, 2, 2); 
+        int leavesIndex = 0;
+        while (leaf == null && MP > 0) // if we aren't on target and we still have MP then we increase MP
+        {
+            int tmpIndex = leaves.Count;
+            for (int i = leavesIndex; i < leaves.Count; i++)
+            {
+                leaf = PathFinding(leaves[i], 2, 2, 1);
+                if (leaf != null) 
+                    break;
+            }
+            MP--;
+            leavesIndex = tmpIndex;
+        }
+        while(leaf != null)
+        {
+            Debug.Log(leaf.x + " : " + leaf.z);
+            leaf = leaf.parent;
+        }
+
+        //PENSER A RESET leaves;
+    }
+
+    private int range(int x, int z, int x2, int z2)
+    {
+        return Math.Abs(x2 - x) + Math.Abs(z2 - z);
     }
 
     private void Update()
     {
-        /*
+        
         UpdateSelection();
         DrawBoard();
 
         if(Input.GetMouseButtonDown(0) && IsTileAvailable()){
             //Debug.Log("clic ok");
             ChosenMove(selectionX, selectionY);
-        }*/
+        }
     }
 
     private void UpdateSelection()
@@ -116,8 +150,78 @@ public class BoardManager : MonoBehaviour
 
     public void EndTurn()
     {
-        Debug.Log("clic ok");
         playerTurn = (playerTurn + 1) % players.Count;
+    }
+
+    private Node PathFinding(Node current, int x, int z, int nbMP)
+    {
+        //Debug.Log(current.x + " : " + current.z);
+        if (current.x == x && current.z == z)
+        {
+            Debug.Log("found.");
+            return current;
+        }
+        if(nbMP == 0)
+        {
+            leaves.Add(current);
+            return null;
+        }
+        else
+        {
+            Node node;
+            Node res1 = null;
+            Node res2 = null;
+            Node res3 = null;
+            Node res4 = null;
+            current.childrens = new List<Node>();
+
+            if (current.x + 1 < NB_TILES)
+            {
+                node = new Node(current.x + 1, current.z);
+                node.parent = current;
+                current.childrens.Add(node);
+                res1 = PathFinding(node, x, z, nbMP - 1);
+            }
+            if (current.z + 1 < NB_TILES)
+            {
+                node = new Node(current.x, current.z + 1);
+                node.parent = current;
+                current.childrens.Add(node);
+                res2 = PathFinding(node, x, z, nbMP - 1);
+            }
+            if (current.x - 1 > 0)
+            {
+                node = new Node(current.x - 1, current.z);
+                node.parent = current;
+                current.childrens.Add(node);
+                res3 = PathFinding(node, x, z, nbMP - 1);
+            } 
+            if (current.z - 1 > 0)
+            {
+                node = new Node(current.x, current.z - 1);
+                node.parent = current;
+                current.childrens.Add(node);
+                res4 = PathFinding(node, x, z, nbMP - 1);
+            }
+            if (res1 != null) return res1;
+            if (res2 != null) return res2;
+            if (res3 != null) return res3;
+            if (res4 != null) return res4;
+            return null;
+        }
     }
 }
 
+public class Node
+{
+    public int x;
+    public int z;
+    public Node parent = null;
+    public List<Node> childrens = null;
+
+    public Node(int x, int z)
+    {
+        this.x = x;
+        this.z = z;
+    }
+}

@@ -21,6 +21,6 @@ public class HUDManager : MonoBehaviour
 
     public void EndTurnPressed()
     {
-        Debug.Log("yolo");
+        Board.GetComponent<BoardManager>().EndTurn();
     }
 }
