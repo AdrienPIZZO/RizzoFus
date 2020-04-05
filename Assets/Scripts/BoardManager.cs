@@ -117,7 +117,10 @@ public class BoardManager : MonoBehaviour
 
     private void ChosenMove(int x, int z)
     {
-        if(range(players[playerTurn].currentX, players[playerTurn].currentZ, x, z) > players[playerTurn].MP)
+        int distance = range(players[playerTurn].currentX, players[playerTurn].currentZ, x, z);
+
+        //Target tile too far from the chosen with his MP
+        if ( distance > players[playerTurn].MP)
         {
             Debug.Log("You can't move that far.");
             return;
@@ -126,12 +129,15 @@ public class BoardManager : MonoBehaviour
         //PATHFINDING
         // We try to find the quickest path from current x/z to targeted x/z
         root = new Node(players[playerTurn].currentX, players[playerTurn].currentZ);
-        int MP = players[playerTurn].MP;
-        Node leaf = PathFinding(root, x, z, range(root.x, root.z, x, z));  //We try first with number of MP = Range then we will increase this number if we didn't find a way
-        MP -= range(root.x, root.z, x, z);
+        Node leaf = PathFinding(root, x, z, distance);  //We try first with number of MP = Range then we will increase this number if we didn't find a way
+
+        int tmpMP = players[playerTurn].MP;
+        tmpMP -= distance;
+
         int leavesIndex = 0;
-        while (leaf == null && MP > 0) // if we aren't on target and we still have MP then we increase MP
+        while (leaf == null && tmpMP > 0) // if we aren't on target and we still have MP then we increase MP
         {
+            Debug.Log("Bug");
             int tmpIndex = leaves.Count;
             for (int i = leavesIndex; i < leaves.Count; i++)
             {
@@ -139,7 +145,7 @@ public class BoardManager : MonoBehaviour
                 if (leaf != null)
                     break;
             }
-            MP--;
+            tmpMP--;
             leavesIndex = tmpIndex;
         }
 
@@ -149,17 +155,18 @@ public class BoardManager : MonoBehaviour
             return;
         }
 
+        //Debug print path
         while (leaf != null)
         {
-            Debug.Log(leaf.x + " : " + leaf.z);
+           // Debug.Log(leaf.x + " : " + leaf.z);
             leaf = leaf.parent;
         }
 
         leaves = new List<Node>(); //reset leaves AND MAYBE free all of the objects at this point
-        Debug.Log("MP : " + MP);
+        Debug.Log("MP : " + tmpMP);
         //END PATHFINDING
 
-        players[playerTurn].MP = MP;
+        players[playerTurn].MP = tmpMP; //MP left to the chosen after moving
 
         //Moving entities
         element[x, z] = element[players[playerTurn].currentX, players[playerTurn].currentZ];
@@ -189,6 +196,7 @@ public class BoardManager : MonoBehaviour
         }
         else
         {
+            Debug.Log("infinite");
             Node node;
             Node res1 = null;
             Node res2 = null;
@@ -210,14 +218,14 @@ public class BoardManager : MonoBehaviour
                 current.childrens.Add(node);
                 res2 = PathFinding(node, x, z, nbMP - 1);
             }
-            if (current.x - 1 > 0)
+            if (current.x - 1 >= 0)
             {
                 node = new Node(current.x - 1, current.z);
                 node.parent = current;
                 current.childrens.Add(node);
                 res3 = PathFinding(node, x, z, nbMP - 1);
             } 
-            if (current.z - 1 > 0)
+            if (current.z - 1 >= 0)
             {
                 node = new Node(current.x, current.z - 1);
                 node.parent = current;
