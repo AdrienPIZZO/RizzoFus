@@ -24,32 +24,7 @@ public class BoardManager : MonoBehaviour
 
     private void Start()
     {
-        int MP = 6;
         SpawnAllChosen();
-        root = new Node(0, 0);
-        // We try to find the quickest path from current x/z to targeted x/z (0,0 to x,z)
-        Node leaf = PathFinding(root, 2, 2, range(root.x, root.z, 2, 2));  //We try first with number of MP = Range then we increase this number
-        MP -= range(root.x, root.z, 2, 2); 
-        int leavesIndex = 0;
-        while (leaf == null && MP > 0) // if we aren't on target and we still have MP then we increase MP
-        {
-            int tmpIndex = leaves.Count;
-            for (int i = leavesIndex; i < leaves.Count; i++)
-            {
-                leaf = PathFinding(leaves[i], 2, 2, 1);
-                if (leaf != null) 
-                    break;
-            }
-            MP--;
-            leavesIndex = tmpIndex;
-        }
-        while(leaf != null)
-        {
-            Debug.Log(leaf.x + " : " + leaf.z);
-            leaf = leaf.parent;
-        }
-
-        //PENSER A RESET leaves;
     }
 
     private int range(int x, int z, int x2, int z2)
@@ -141,7 +116,52 @@ public class BoardManager : MonoBehaviour
     }
 
     private void ChosenMove(int x, int z)
-    {  
+    {
+        if(range(players[playerTurn].currentX, players[playerTurn].currentZ, x, z) > players[playerTurn].MP)
+        {
+            Debug.Log("You can't move that far.");
+            return;
+        }
+
+        //PATHFINDING
+        // We try to find the quickest path from current x/z to targeted x/z
+        root = new Node(players[playerTurn].currentX, players[playerTurn].currentZ);
+        int MP = players[playerTurn].MP;
+        Node leaf = PathFinding(root, x, z, range(root.x, root.z, x, z));  //We try first with number of MP = Range then we will increase this number if we didn't find a way
+        MP -= range(root.x, root.z, x, z);
+        int leavesIndex = 0;
+        while (leaf == null && MP > 0) // if we aren't on target and we still have MP then we increase MP
+        {
+            int tmpIndex = leaves.Count;
+            for (int i = leavesIndex; i < leaves.Count; i++)
+            {
+                leaf = PathFinding(leaves[i], x, z, 1);
+                if (leaf != null)
+                    break;
+            }
+            MP--;
+            leavesIndex = tmpIndex;
+        }
+
+        if (leaf == null) //we didn't find a way with all our MP
+        {
+            Debug.Log("We didn't find a way to go there");
+            return;
+        }
+
+        while (leaf != null)
+        {
+            Debug.Log(leaf.x + " : " + leaf.z);
+            leaf = leaf.parent;
+        }
+
+        leaves = new List<Node>(); //reset leaves AND MAYBE free all of the objects at this point
+        Debug.Log("MP : " + MP);
+        //END PATHFINDING
+
+        players[playerTurn].MP = MP;
+
+        //Moving entities
         element[x, z] = element[players[playerTurn].currentX, players[playerTurn].currentZ];
         element[players[playerTurn].currentX, players[playerTurn].currentZ] = null;
         players[playerTurn].SetPosition(x, z);
@@ -150,6 +170,7 @@ public class BoardManager : MonoBehaviour
 
     public void EndTurn()
     {
+        players[playerTurn].MPReset();
         playerTurn = (playerTurn + 1) % players.Count;
     }
 
@@ -218,7 +239,6 @@ public class Node
     public int z;
     public Node parent = null;
     public List<Node> childrens = null;
-
     public Node(int x, int z)
     {
         this.x = x;
