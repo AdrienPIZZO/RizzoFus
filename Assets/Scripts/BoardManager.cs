@@ -16,7 +16,7 @@ public class BoardManager : MonoBehaviour
 
     private int playerTurn = 0;
 
-    public List<GameObject> chosensPrefabs;
+    public List<GameObject> prefabs;
     public List<Chosen> players;
 
     private Node root;
@@ -25,6 +25,7 @@ public class BoardManager : MonoBehaviour
     private void Start()
     {
         SpawnAllChosen();
+        SpawnAllObstacles();
     }
 
     private int range(int x, int z, int x2, int z2)
@@ -38,7 +39,7 @@ public class BoardManager : MonoBehaviour
         UpdateSelection();
         DrawBoard();
 
-        if(Input.GetMouseButtonDown(0) && IsTileAvailable()){
+        if(Input.GetMouseButtonDown(0) && IsTileAvailable(selectionX, selectionY)){
             //Debug.Log("clic ok");
             ChosenMove(selectionX, selectionY);
         }
@@ -64,11 +65,19 @@ public class BoardManager : MonoBehaviour
  
     private void SpawnChosen(int indexPrefab, int x, int z)
     {
-        GameObject go = Instantiate(chosensPrefabs[indexPrefab], GetTileCenter(x, z) + Vector3.up * chosensPrefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2, Quaternion.identity) as GameObject;
+        GameObject go = Instantiate(prefabs[indexPrefab], GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2, Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
         element[x, z] = go;
         go.GetComponent<Chosen>().SetPosition(x, z);
         players.Add(go.GetComponent<Chosen>());
+    }
+
+    private void SpawnObstacle(int indexPrefab, int x, int z)
+    {
+        GameObject go = Instantiate(prefabs[indexPrefab], GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2, Quaternion.identity) as GameObject;
+        go.transform.SetParent(transform);
+        element[x, z] = go;
+        go.GetComponent<Obstacles>().SetPosition(x, z);
     }
 
     private void SpawnAllChosen()
@@ -77,7 +86,17 @@ public class BoardManager : MonoBehaviour
         element = new GameObject[NB_TILES, NB_TILES];
         SpawnChosen(0, 0, 0);
         SpawnChosen(0, 7, 7);
-    } 
+    }
+
+    private void SpawnAllObstacles()
+    {
+        SpawnObstacle(1, 2, 2);
+        SpawnObstacle(1, 3, 0);
+        SpawnObstacle(1, 2, 0);
+        SpawnObstacle(1, 1, 0);
+        SpawnObstacle(1, 2, 1);
+        SpawnObstacle(1, 5, 5);
+    }
 
     private void DrawBoard()
     {
@@ -109,10 +128,10 @@ public class BoardManager : MonoBehaviour
         return origin;
     }
 
-    private bool IsTileAvailable()
+    private bool IsTileAvailable(int x, int z)
     {
-        return selectionX >= 0 && selectionY >= 0 &&                        //Check if mouse has moved at least one time on the board
-        element[selectionX, selectionY] == null;                            //Check if there is no object on the tile we are trying to move on
+        //Debug.Log(element[x,z]);
+        return x >= 0 && z >= 0 && x < NB_TILES && z < NB_TILES && element[x, z] == null;   //Check if there is no object on the tile we are trying to move on
     }
 
     private void ChosenMove(int x, int z)
@@ -137,13 +156,16 @@ public class BoardManager : MonoBehaviour
         int leavesIndex = 0;
         while (leaf == null && tmpMP > 0) // if we aren't on target and we still have MP then we increase MP
         {
-            Debug.Log("Bug");
+            Debug.Log("mp : " + tmpMP);
             int tmpIndex = leaves.Count;
-            for (int i = leavesIndex; i < leaves.Count; i++)
+            for (int i = leavesIndex; i < tmpIndex; i++)
             {
                 leaf = PathFinding(leaves[i], x, z, 1);
                 if (leaf != null)
+                {
+                    Debug.Log("mp : " + tmpMP);
                     break;
+                }
             }
             tmpMP--;
             leavesIndex = tmpIndex;
@@ -152,13 +174,14 @@ public class BoardManager : MonoBehaviour
         if (leaf == null) //we didn't find a way with all our MP
         {
             Debug.Log("We didn't find a way to go there");
+            leaves = new List<Node>(); //reset leaves AND MAYBE free all of the objects at this point
             return;
         }
 
         //Debug print path
         while (leaf != null)
         {
-           // Debug.Log(leaf.x + " : " + leaf.z);
+            Debug.Log(leaf.x + " : " + leaf.z);
             leaf = leaf.parent;
         }
 
@@ -172,7 +195,7 @@ public class BoardManager : MonoBehaviour
         element[x, z] = element[players[playerTurn].currentX, players[playerTurn].currentZ];
         element[players[playerTurn].currentX, players[playerTurn].currentZ] = null;
         players[playerTurn].SetPosition(x, z);
-        element[x, z].transform.position = GetTileCenter(x, z)  + Vector3.up * chosensPrefabs[0].GetComponent<Renderer>().bounds.size.y / 2;
+        element[x, z].transform.position = GetTileCenter(x, z)  + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2;
     }
 
     public void EndTurn()
@@ -186,17 +209,16 @@ public class BoardManager : MonoBehaviour
         //Debug.Log(current.x + " : " + current.z);
         if (current.x == x && current.z == z)
         {
-            Debug.Log("found.");
+            //Debug.Log("found.");
             return current;
         }
-        if(nbMP == 0)
+        if(nbMP <= 0)
         {
             leaves.Add(current);
             return null;
         }
         else
         {
-            Debug.Log("infinite");
             Node node;
             Node res1 = null;
             Node res2 = null;
@@ -204,38 +226,38 @@ public class BoardManager : MonoBehaviour
             Node res4 = null;
             current.childrens = new List<Node>();
 
-            if (current.x + 1 < NB_TILES)
+            if (current.x + 1 < NB_TILES && IsTileAvailable(current.x+1, current.z))
             {
                 node = new Node(current.x + 1, current.z);
                 node.parent = current;
                 current.childrens.Add(node);
                 res1 = PathFinding(node, x, z, nbMP - 1);
+                if (res1 != null) return res1;
             }
-            if (current.z + 1 < NB_TILES)
+            if (current.z + 1 < NB_TILES && IsTileAvailable(current.x, current.z+1))
             {
                 node = new Node(current.x, current.z + 1);
                 node.parent = current;
                 current.childrens.Add(node);
                 res2 = PathFinding(node, x, z, nbMP - 1);
+                if (res2 != null) return res2;
             }
-            if (current.x - 1 >= 0)
+            if (current.x - 1 >= 0 && IsTileAvailable(current.x-1, current.z))
             {
                 node = new Node(current.x - 1, current.z);
                 node.parent = current;
                 current.childrens.Add(node);
                 res3 = PathFinding(node, x, z, nbMP - 1);
+                if (res3 != null) return res3;
             } 
-            if (current.z - 1 >= 0)
+            if (current.z - 1 >= 0 && IsTileAvailable(current.x, current.z-1))
             {
                 node = new Node(current.x, current.z - 1);
                 node.parent = current;
                 current.childrens.Add(node);
                 res4 = PathFinding(node, x, z, nbMP - 1);
+                if (res4 != null) return res4;
             }
-            if (res1 != null) return res1;
-            if (res2 != null) return res2;
-            if (res3 != null) return res3;
-            if (res4 != null) return res4;
             return null;
         }
     }
