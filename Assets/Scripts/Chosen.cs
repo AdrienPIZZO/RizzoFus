@@ -2,20 +2,35 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Chosen : MonoBehaviour
+public class Chosen : Entity
 {
     private const int MPMAX = 6;
-    public int MP = MPMAX;
-    public int currentX{set;get;}
-    public int currentZ{set;get;}
+    private const int HPMAX = 100;
 
-    public void SetPosition(int x, int z)
-    {
-        currentX = x;
-        currentZ = z;
-    }
+    public int MP = MPMAX;
+    public int HP = HPMAX;
+
+
     public void MPReset()
     {
         MP = MPMAX;
+    }
+
+    private bool isDead()
+    {
+        return HP<=0;
+    }
+
+    public override bool receiveAttack(int amount)
+    {
+        HP -= amount;
+        Debug.Log(HP);
+        return isDead();
+    }
+
+    public void attack(Entity e)//Spell s
+    {
+        bool death = e.receiveAttack(10);
+
     }
 }

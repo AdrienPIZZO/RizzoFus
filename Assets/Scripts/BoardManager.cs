@@ -5,7 +5,7 @@ using System;
 
 public class BoardManager : MonoBehaviour
 {
-    public GameObject[,] element{set;get;} // a terme remplacer par classe mere element pour pouvoir enregistrer obstacles
+    public Entity[,] element{set;get;} // a terme remplacer par classe mere element pour pouvoir enregistrer obstacles
 
     private const float TILE_SIZE = 1.0f;
     private const float TILE_OFFSET = 0.5f;
@@ -15,6 +15,8 @@ public class BoardManager : MonoBehaviour
     private int selectionY = -1;
 
     private int playerTurn = 0;
+
+    private bool attackSelected = false;
 
     public List<GameObject> prefabs;
     public List<Chosen> players;
@@ -35,14 +37,22 @@ public class BoardManager : MonoBehaviour
 
     private void Update()
     {
-        
         UpdateSelection();
         DrawBoard();
 
-        if(Input.GetMouseButtonDown(0) && IsTileAvailable(selectionX, selectionY)){
-            //Debug.Log("clic ok");
-            ChosenMove(selectionX, selectionY);
-        }
+        if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionY != -1))
+        {
+            Entity e = element[selectionX, selectionY];
+             Debug.Log( attackSelected);
+            if (attackSelected && e != null)
+            {
+                Debug.Log("AAAAAAAAAAAAAAAAAAAAAAAAAA");
+                players[playerTurn].attack(e);
+            } else if (IsTileAvailable(selectionX, selectionY)){
+                //Debug.Log("clic ok");
+                ChosenMove(selectionX, selectionY);
+            } 
+        }        
     }
 
     private void UpdateSelection()
@@ -50,6 +60,7 @@ public class BoardManager : MonoBehaviour
         if(!Camera.main)
             return;
         
+
         RaycastHit hit;
         if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 25.0f, LayerMask.GetMask("Plane"))){
             //Debug.Log(hit.point);
@@ -60,14 +71,14 @@ public class BoardManager : MonoBehaviour
         {
             selectionX = -1;
             selectionY = -1;
-        }
+        } 
     }
  
     private void SpawnChosen(int indexPrefab, int x, int z)
     {
         GameObject go = Instantiate(prefabs[indexPrefab], GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2, Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
-        element[x, z] = go;
+        element[x, z] = go.GetComponent<Chosen>();
         go.GetComponent<Chosen>().SetPosition(x, z);
         players.Add(go.GetComponent<Chosen>());
     }
@@ -76,14 +87,14 @@ public class BoardManager : MonoBehaviour
     {
         GameObject go = Instantiate(prefabs[indexPrefab], GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2, Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
-        element[x, z] = go;
+        element[x, z] = go.GetComponent<Obstacles>();
         go.GetComponent<Obstacles>().SetPosition(x, z);
     }
 
     private void SpawnAllChosen()
     {
         players = new List<Chosen>();
-        element = new GameObject[NB_TILES, NB_TILES];
+        element = new Entity[NB_TILES, NB_TILES];
         SpawnChosen(0, 0, 0);
         SpawnChosen(0, 7, 7);
     }
@@ -134,6 +145,17 @@ public class BoardManager : MonoBehaviour
         return x >= 0 && z >= 0 && x < NB_TILES && z < NB_TILES && element[x, z] == null;   //Check if there is no object on the tile we are trying to move on
     }
 
+    private Entity TileContent(int x, int z)
+    {
+        //Debug.Log(element[x,z]);
+        if ( x >= 0 && z >= 0 && x < NB_TILES && z < NB_TILES )
+        {
+             return element[x, z];
+        }
+           
+        return null;
+    }
+
     private void ChosenMove(int x, int z)
     {
         int distance = range(players[playerTurn].currentX, players[playerTurn].currentZ, x, z);
@@ -156,7 +178,7 @@ public class BoardManager : MonoBehaviour
         int leavesIndex = 0;
         while (leaf == null && tmpMP > 0) // if we aren't on target and we still have MP then we increase MP
         {
-            Debug.Log("mp : " + tmpMP);
+            //Debug.Log("mp : " + tmpMP);
             int tmpIndex = leaves.Count;
             for (int i = leavesIndex; i < tmpIndex; i++)
             {
@@ -173,7 +195,7 @@ public class BoardManager : MonoBehaviour
 
         if (leaf == null) //we didn't find a way with all our MP
         {
-            Debug.Log("We didn't find a way to go there");
+            //Debug.Log("We didn't find a way to go there");
             leaves = new List<Node>(); //reset leaves AND MAYBE free all of the objects at this point
             return;
         }
@@ -181,12 +203,12 @@ public class BoardManager : MonoBehaviour
         //Debug print path
         while (leaf != null)
         {
-            Debug.Log(leaf.x + " : " + leaf.z);
+            //Debug.Log(leaf.x + " : " + leaf.z);
             leaf = leaf.parent;
         }
 
         leaves = new List<Node>(); //reset leaves AND MAYBE free all of the objects at this point
-        Debug.Log("MP : " + tmpMP);
+        //Debug.Log("MP : " + tmpMP);
         //END PATHFINDING
 
         players[playerTurn].MP = tmpMP; //MP left to the chosen after moving
@@ -260,6 +282,11 @@ public class BoardManager : MonoBehaviour
             }
             return null;
         }
+    }
+
+    public void SetAttackSelected(bool b)
+    {
+        attackSelected = b;
     }
 }
 

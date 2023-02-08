@@ -5,7 +5,10 @@ using UnityEngine;
 public class HUDManager : MonoBehaviour
 {
     public GameObject ButtonEndTurn;
+    public GameObject ButtonAttack;
     public GameObject Board;
+
+    
 
     // Start is called before the first frame update
     void Start()
@@ -23,4 +26,11 @@ public class HUDManager : MonoBehaviour
     {
         Board.GetComponent<BoardManager>().EndTurn();
     }
+
+        public void AttackPressed()
+    {
+        Board.GetComponent<BoardManager>().SetAttackSelected(true);
+    }
+
+
 }
