@@ -30,6 +30,14 @@ public class HUDManager : MonoBehaviour
 
     public void updateSpellButton(){
         
+        go = Instantiate(prefabs[0], new Vector3(1400, 25, 0), Quaternion.identity) as GameObject;
+            go.transform.SetParent(transform);
+            b = go.GetComponent<Button>();
+            b.onClick.AddListener(EndTurnPressed);
+            tm = b.GetComponentInChildren<TextMeshProUGUI>();
+            tm.text = "Pass";
+        
+
         i = 0;
         foreach(KeyValuePair<int, Spell> s in bm.players[bm.playerTurn].spells){
             go = Instantiate(prefabs[0], new Vector3(i*200 + 100, 25, 0), Quaternion.identity) as GameObject;

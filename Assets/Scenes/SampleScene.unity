@@ -797,6 +797,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5790f6dcd13473a48bd4322bd7635144, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerTurn: 0
+  spellSelected: -1
+  Canvas: {fileID: 756857066}
   prefabs:
   - {fileID: 8603110822457391600, guid: dbacf0af53f767746aa1c967f60c8b8d, type: 3}
   - {fileID: 4404805552310922836, guid: 8fce193616a824243bd4e3fb7639113d, type: 3}
