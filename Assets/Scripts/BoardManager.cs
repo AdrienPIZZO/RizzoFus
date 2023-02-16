@@ -14,19 +14,38 @@ public class BoardManager : MonoBehaviour
     private int selectionX = -1;
     private int selectionY = -1;
 
-    private int playerTurn = 0;
+    public int playerTurn = 0;
 
-    private bool attackSelected = false;
-
-    public List<GameObject> prefabs;
+    public int spellSelected = -1;
+    public GameObject Canvas;
+    public List<GameObject> prefabs; // Filled by Unity with prefabs folder content
     public List<Chosen> players;
 
     private Node root;
     private List<Node> leaves = new List<Node>();
 
+    //private List<Spell> spells = new List<Spell>();
+    public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
+
     private void Start()
     {
+        //create all spells in the game
+        spells.Add(0, new Spell("Electric blade", 10, 10, 0));
+        spells.Add(1, new Spell("Shuriken", 25, 0, 0));
+        spells.Add(2, new Spell("Fire ball", 5, 30, 2));
+
         SpawnAllChosen();
+
+        //Affect spell to chosen
+        foreach(Chosen p in players){
+            foreach(KeyValuePair<int, Spell> s in spells){
+                p.addSpell(s);
+            }
+        }
+
+        HUDManager hm = Canvas.GetComponent<HUDManager>();
+        hm.updateSpellButton();
+
         SpawnAllObstacles();
     }
 
@@ -43,11 +62,11 @@ public class BoardManager : MonoBehaviour
         if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionY != -1))
         {
             Entity e = element[selectionX, selectionY];
-             Debug.Log( attackSelected);
-            if (attackSelected && e != null)
+            if (spellSelected!=-1)
             {
-                Debug.Log("AAAAAAAAAAAAAAAAAAAAAAAAAA");
-                players[playerTurn].attack(e);
+                Debug.Log(spells[spellSelected].getName());
+                players[playerTurn].useSpell(e, spells[spellSelected]);
+                spellSelected=-1;
             } else if (IsTileAvailable(selectionX, selectionY)){
                 //Debug.Log("clic ok");
                 ChosenMove(selectionX, selectionY);
@@ -286,7 +305,7 @@ public class BoardManager : MonoBehaviour
 
     public void SetAttackSelected(bool b)
     {
-        attackSelected = b;
+     //   attackSelected = b;
     }
 }
 

@@ -10,7 +10,13 @@ public class Chosen : Entity
     public int MP = MPMAX;
     public int HP = HPMAX;
 
+    //private List<Spell> spells = new List<Spell>();
+    public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
 
+    public void addSpell(KeyValuePair<int, Spell> s){
+        spells.Add(s.Key, s.Value);
+    }
+ 
     public void MPReset()
     {
         MP = MPMAX;
@@ -21,16 +27,18 @@ public class Chosen : Entity
         return HP<=0;
     }
 
-    public override bool receiveAttack(int amount)
+    public override bool targeted(Chosen caster, Spell s)
     {
-        HP -= amount;
+        s.effectOnChosen(caster, this);
         Debug.Log(HP);
         return isDead();
     }
 
-    public void attack(Entity e)//Spell s
+    public void useSpell(Entity target, Spell s)
     {
-        bool death = e.receiveAttack(10);
+        if (target != null){ //if the tile is not empty
+            target.targeted(this, s);
+        } 
 
     }
 }

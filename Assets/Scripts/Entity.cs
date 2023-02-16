@@ -13,7 +13,7 @@ public class Entity : MonoBehaviour
         currentZ = z;
     }
 
-    public virtual bool receiveAttack(int damage){
+    public virtual bool targeted(Chosen caster, Spell s){
         Debug.Log("WTF");
         return false;
     }
