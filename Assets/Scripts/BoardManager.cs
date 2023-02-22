@@ -20,9 +20,20 @@ public class BoardManager : MonoBehaviour
     private void Start()
     {
         //create all spells in the game
-        spells.Add(0, new Spell("Electric blade", 10, 10, 0));
-        spells.Add(1, new Spell("Shuriken", 25, 0, 0));
-        spells.Add(2, new Spell("Fire ball", 5, 30, 2));
+        
+        Spell electricBlade = new Spell("Electric blade", 20);
+        electricBlade.effects.Add(new PhysicalDamage(10));
+        spells.Add(0, electricBlade);
+
+        Spell shuriken = new Spell("Shuriken", 30);
+        shuriken.effects.Add(new PhysicalDamage(10));
+        spells.Add(1, shuriken);
+
+        Spell fireBall = new Spell("Fire ball", 30);
+        fireBall.effects.Add(new PhysicalDamage(10));
+        spells.Add(2, fireBall);
+
+
 
         SpawnAllChosen();
 

@@ -1,26 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Effect;
 
 public class Spell
 {
-    private string name;
-    private int phisycalDamage;
-    private int magicalDamage;
-    private int aoe;
+    public List<Effect> effects = new List<Effect>();
 
-    public Spell(string name, int phisycalDamage, int magicalDamage, int aoe){
+    private string name;
+    public int pwrCost;
+
+    public Spell(string name, int pwrCost){
         this.name = name;
-        this.phisycalDamage = phisycalDamage;
-        this.magicalDamage = magicalDamage;
-        this.aoe = aoe;
+        this.pwrCost = pwrCost;
     }
 
     public string getName(){
         return name;
     }
 
-    public void effectOnChosen(Chosen caster, Chosen target){
-        target.HP -= phisycalDamage + magicalDamage;
+    public void applyAllEffects(Chosen caster, Chosen target){
+        foreach (Effect e in effects){
+            e.apply(caster, target);
+        }
     }
 }
