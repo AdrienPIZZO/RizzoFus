@@ -22,19 +22,23 @@ public class BoardManager : MonoBehaviour
         //create all spells in the game
         
         Spell electricBlade = new Spell("Electric blade", 20);
-        electricBlade.effects.Add(new PhysicalDamage(10));
+        electricBlade.effects.Add(new PhysicalDamage(board, 5));
         spells.Add(0, electricBlade);
 
         Spell shuriken = new Spell("Shuriken", 30);
-        shuriken.effects.Add(new PhysicalDamage(10));
+        shuriken.effects.Add(new PhysicalDamage(board, 10));
         spells.Add(1, shuriken);
 
         Spell fireBall = new Spell("Fire ball", 30);
-        fireBall.effects.Add(new PhysicalDamage(10));
+        fireBall.effects.Add(new PhysicalDamage(board, 20));
         spells.Add(2, fireBall);
 
+        Spell jadePalm = new Spell("Jade palm", 40);
+        jadePalm.effects.Add(new PhysicalDamage(board, 5));
+        jadePalm.effects.Add(new MoveTarget(board, 2));
+        spells.Add(3, jadePalm);
 
-
+        board.initElements();
         SpawnAllChosen();
 
         //Affect spell to chosen
@@ -87,6 +91,14 @@ public class BoardManager : MonoBehaviour
         {
             Debug.DrawLine(Vector3.forward * selectionY + Vector3.right * selectionX,
             Vector3.forward * (selectionY + 1) + Vector3.right * (selectionX + 1));
+        }
+        //Debug.Log(board.getElements().GetLength(0));
+        for(int x = 0; x < board.getElements().GetLength(0); x++){
+            for(int z = 0; z < board.getElements().GetLength(1); z++){
+                if(board.TileContent(x, z) != null){
+                    board.TileContent(x, z).transform.position = board.GetTileCenter(x, z) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2;
+                }
+            }
         }
     }
 
@@ -150,7 +162,7 @@ public class BoardManager : MonoBehaviour
         board.setElement(x, z, players[playerTurn]);
         board.setElement(players[playerTurn].currentX, players[playerTurn].currentZ, null);
         players[playerTurn].SetPosition(x, z);
-        board.TileContent(x, z).transform.position = board.GetTileCenter(x, z)  + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2;
+        
     }
 
     private void UpdateSelection()
@@ -175,23 +187,26 @@ public class BoardManager : MonoBehaviour
     {
         GameObject go = Instantiate(prefabs[indexPrefab], board.GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2, Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
-        board.setElement(x, z, go.GetComponent<Chosen>());
-        go.GetComponent<Chosen>().SetPosition(x, z);
-        players.Add(go.GetComponent<Chosen>());
+        Chosen chosen = go.GetComponent<Chosen>();
+        chosen.setBoard(board);
+        board.setElement(x, z, chosen);
+        chosen.SetPosition(x, z);
+        players.Add(chosen);
     }
 
     private void SpawnObstacle(int indexPrefab, int x, int z)
     {
         GameObject go = Instantiate(prefabs[indexPrefab], board.GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2, Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
-        board.setElement(x, z, go.GetComponent<Obstacles>());
-        go.GetComponent<Obstacles>().SetPosition(x, z);
+        Obstacles obstacle = go.GetComponent<Obstacles>();
+        obstacle.setBoard(board);
+        board.setElement(x, z, obstacle);
+        obstacle.SetPosition(x, z);
     }
 
     private void SpawnAllChosen()
     {
         players = new List<Chosen>();
-        board.initElements();
         SpawnChosen(0, 0, 0);
         SpawnChosen(0, 7, 7);
     }

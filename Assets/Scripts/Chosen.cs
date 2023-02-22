@@ -16,10 +16,12 @@ public class Chosen : Entity
     public int powerGauge = PWRGAUGEMAX/2;
     public int armor = 10;// % based
     public int strength = 5;
-
     public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
 
     public void addSpell(KeyValuePair<int, Spell> s){
+        if(spells == null){
+            Debug.Log("s");
+        }
         spells.Add(s.Key, s.Value);
     }
  
