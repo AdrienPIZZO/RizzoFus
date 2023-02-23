@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class Chosen : Entity
 {
@@ -14,20 +15,35 @@ public class Chosen : Entity
     public int MP = MPMAX;
     public int HP = HPMAX;
     public int powerGauge = PWRGAUGEMAX/2;
+     public int powerRegen = 50;
     public int armor = 10;// % based
     public int strength = 5;
     public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
 
+    public List<Buff> buffs = new List<Buff>();
     public void addSpell(KeyValuePair<int, Spell> s){
         if(spells == null){
             Debug.Log("s");
         }
         spells.Add(s.Key, s.Value);
     }
+
+    public void beginTurn(){
+        foreach(Buff b in buffs.ToList()){
+            if (b.nbTurnRemaining <= 0){
+                Debug.Log("NOPE");
+                buffs.Remove(b);
+            } else {
+                b.applyBuff();
+            }
+        }
+    }
  
-    public void MPReset()
+    public void passTurn()
     {
         MP = MPMAX;
+        powerGauge = powerGauge + powerRegen <= PWRGAUGEMAX ? powerGauge + powerRegen : PWRGAUGEMAX;
+
     }
 
     private bool isDead()

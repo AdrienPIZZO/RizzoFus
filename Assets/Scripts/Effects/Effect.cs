@@ -9,7 +9,6 @@ public abstract class Effect
     public abstract void apply(Chosen caster, Chosen target);
     public abstract void apply(Chosen caster, Obstacles target);
     /*public void apply(Chosen caster, EmptyTile target);*/
-
 }
 
 public class PhysicalDamage : Effect
@@ -46,13 +45,14 @@ public class MoveTarget : Effect
     public override void apply(Chosen caster, Chosen target){
         (int, int) vect = (target.currentX - caster.currentX, target.currentZ - caster.currentZ); // Save vect between caster and target somewhere nice
         (int, int) orientation;
-        if(Math.Abs(vect.Item1) == Math.Abs(vect.Item2)){// Diagonal
-            orientation = (Math.Abs(vect.Item1)/vect.Item1, Math.Abs(vect.Item2)/vect.Item2); // better math function
-        } else if(Math.Abs(vect.Item1) > Math.Abs(vect.Item2)){
+        if(Math.Abs(vect.Item1) > Math.Abs(vect.Item2)){
             orientation = (Math.Abs(vect.Item1)/vect.Item1, 0);
         } else if(Math.Abs(vect.Item1) < Math.Abs(vect.Item2)){
             orientation = (0, Math.Abs(vect.Item2)/vect.Item2);
-        } else{
+        } else if(Math.Abs(vect.Item1) == Math.Abs(vect.Item2)){// Diagonal
+            orientation = (Math.Abs(vect.Item1)/vect.Item1, Math.Abs(vect.Item2)/vect.Item2); // better math function
+        }
+        else{
             orientation = (0, 0);
             Debug.Log("Error orientation!");
         }
@@ -78,3 +78,6 @@ public class MoveTarget : Effect
     /*public void apply(Chosen caster, EmptyTile target){
     }*/
 }
+
+
+
