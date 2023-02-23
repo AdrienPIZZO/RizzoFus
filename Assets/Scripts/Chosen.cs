@@ -28,6 +28,8 @@ public class Chosen : Entity
     public void MPReset()
     {
         MP = MPMAX;
+
+        //to delete
     }
 
     private bool isDead()
