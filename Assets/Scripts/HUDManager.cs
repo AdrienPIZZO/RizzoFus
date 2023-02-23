@@ -14,12 +14,13 @@ public class HUDManager : MonoBehaviour
     private GameObject go;
     private Button b;
     private TextMeshProUGUI tm; 
-    int i;
+
+    private List<GameObject> spellButtons = new List<GameObject>();
 
     // Start is called before the first frame update
     void Start()
     {
-        bm = Board.GetComponent<BoardManager>();
+
     }
 
     // Update is called once per frame
@@ -28,8 +29,9 @@ public class HUDManager : MonoBehaviour
 
     }
 
-    public void updateSpellButton(){
-        
+    public void initHUD(){
+        bm = Board.GetComponent<BoardManager>();
+
         go = Instantiate(prefabs[0], new Vector3(1400, 25, 0), Quaternion.identity) as GameObject;
             go.transform.SetParent(transform);
             b = go.GetComponent<Button>();
@@ -38,7 +40,26 @@ public class HUDManager : MonoBehaviour
             tm.text = "Pass";
         
 
-        i = 0;
+        int i = 0;
+        foreach(KeyValuePair<int, Spell> s in bm.players[bm.playerTurn].spells){
+            go = Instantiate(prefabs[0], new Vector3(i*200 + 100, 25, 0), Quaternion.identity) as GameObject;
+            go.transform.SetParent(transform);
+            b = go.GetComponent<Button>();
+            b.onClick.AddListener(delegate{spellButtonHandler(s.Key);});
+            tm = b.GetComponentInChildren<TextMeshProUGUI>();
+            tm.text = s.Value.getName();
+            i++;
+            spellButtons.Add(go);
+        }
+        
+    }
+
+        public void updateHUD(){
+        
+        foreach(GameObject go in spellButtons){
+            Destroy(go);
+        }
+        int i = 0;
         foreach(KeyValuePair<int, Spell> s in bm.players[bm.playerTurn].spells){
             go = Instantiate(prefabs[0], new Vector3(i*200 + 100, 25, 0), Quaternion.identity) as GameObject;
             go.transform.SetParent(transform);

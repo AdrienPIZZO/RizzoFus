@@ -9,6 +9,7 @@ public class BoardManager : MonoBehaviour
     public int playerTurn = 0;
     public int spellSelected = -1;
     public GameObject Canvas;
+    public HUDManager hm;
     public List<GameObject> prefabs; // Filled by Unity with prefabs folder content
     public List<Chosen> players;
     private Board board = new Board(1.0f, 0.5f, 8);
@@ -19,39 +20,53 @@ public class BoardManager : MonoBehaviour
 
     private void Start()
     {
+        board.initElements();
+
+        SpawnAllChosen();
+
+        int id = 0;
         //create all spells in the game
-        
         Spell electricBlade = new Spell("Electric blade", 20);
         electricBlade.effects.Add(new PhysicalDamage(board, 5));
-        spells.Add(0, electricBlade);
-
-        Spell shuriken = new Spell("Shuriken", 30);
-        shuriken.effects.Add(new PhysicalDamage(board, 10));
-        spells.Add(1, shuriken);
+        spells.Add(id++, electricBlade);
 
         Spell fireBall = new Spell("Fire ball", 30);
         fireBall.effects.Add(new PhysicalDamage(board, 20));
-        spells.Add(2, fireBall);
+        spells.Add(id++, fireBall);
+
+        Spell frozenGasp = new Spell("Frozen Gasp", 30);
+        frozenGasp.effects.Add(new PhysicalDamage(board, 20));
+        frozenGasp.effects.Add(new MPbuff(2, false, -1));
+        spells.Add(id++, frozenGasp);
+
+        Spell shuriken = new Spell("Shuriken", 30);
+        shuriken.effects.Add(new PhysicalDamage(board, 10));
+        spells.Add(id++, shuriken);
+
+        Spell celerity = new Spell("Celerity", 10);
+        celerity.effects.Add(new MPbuff(1, true, 3));
+        spells.Add(id++, celerity);
 
         Spell jadePalm = new Spell("Jade palm", 40);
         jadePalm.effects.Add(new PhysicalDamage(board, 5));
         jadePalm.effects.Add(new MoveTarget(board, 2));
-        spells.Add(3, jadePalm);
-
-        board.initElements();
-        SpawnAllChosen();
+        spells.Add(id++, jadePalm);
 
         //Affect spell to chosen
-        foreach(Chosen p in players){
-            foreach(KeyValuePair<int, Spell> s in spells){
-                p.addSpell(s);
-            }
-        }
+        players[0].addSpell(new KeyValuePair<int, Spell> (0, spells[0]));
+        players[0].addSpell(new KeyValuePair<int, Spell> (1, spells[1]));
+        players[0].addSpell(new KeyValuePair<int, Spell> (2, spells[2]));
 
-        HUDManager hm = Canvas.GetComponent<HUDManager>();
-        hm.updateSpellButton();
+        players[1].addSpell(new KeyValuePair<int, Spell> (3, spells[3]));
+        players[1].addSpell(new KeyValuePair<int, Spell> (4, spells[4]));
+        players[1].addSpell(new KeyValuePair<int, Spell> (5, spells[5]));
 
         SpawnAllObstacles();
+
+        hm = Canvas.GetComponent<HUDManager>();
+        hm.initHUD();
+
+
     }
 
     private void Update()
@@ -185,7 +200,8 @@ public class BoardManager : MonoBehaviour
  
     private void SpawnChosen(int indexPrefab, int x, int z)
     {
-        GameObject go = Instantiate(prefabs[indexPrefab], board.GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2, Quaternion.identity) as GameObject;
+        GameObject go = Instantiate(prefabs[indexPrefab], board.GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2,
+        Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
         Chosen chosen = go.GetComponent<Chosen>();
         chosen.setBoard(board);
@@ -196,7 +212,8 @@ public class BoardManager : MonoBehaviour
 
     private void SpawnObstacle(int indexPrefab, int x, int z)
     {
-        GameObject go = Instantiate(prefabs[indexPrefab], board.GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2, Quaternion.identity) as GameObject;
+        GameObject go = Instantiate(prefabs[indexPrefab], board.GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2,
+        Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
         Obstacles obstacle = go.GetComponent<Obstacles>();
         obstacle.setBoard(board);
@@ -223,8 +240,11 @@ public class BoardManager : MonoBehaviour
 
     public void EndTurn()
     {
-        players[playerTurn].MPReset();
+        players[playerTurn].passTurn();
         playerTurn = (playerTurn + 1) % players.Count;
+        hm.updateHUD();
+        players[playerTurn].beginTurn();
+
     }
 
     public void SetAttackSelected(bool b)
