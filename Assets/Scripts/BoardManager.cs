@@ -5,22 +5,25 @@ using UnityEngine;
 public class BoardManager : MonoBehaviour
 {
     private int selectionX = -1;
-    private int selectionY = -1;
+    private int selectionZ = -1;
     public int playerTurn = 0;
     public int spellSelected = -1;
     public GameObject Canvas;
     public HUDManager hm;
     public List<GameObject> prefabs; // Filled by Unity with prefabs folder content
     public List<Chosen> players;
-    private Board board = new Board(1.0f, 0.5f, 8);
+    private Board board; 
     private Node root;
     private List<Node> leaves = new List<Node>();
-    //private List<Spell> spells = new List<Spell>();
     public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
+    Vector3 offset; 
+
+    public Square lastSquareSelected = null;
 
     private void Start()
     {
-        board.initElements();
+        offset = transform.position;
+        board = new Board(1.0f, 0.5f, 16);
 
         SpawnAllChosen();
 
@@ -74,17 +77,16 @@ public class BoardManager : MonoBehaviour
         UpdateSelection();
         DrawBoard();
 
-        if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionY != -1))
+        if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionZ != -1))
         {
-            Entity e = board.TileContent(selectionX, selectionY);
+            lastSquareSelected = board.squares[selectionX, selectionZ];
             if (spellSelected!=-1)
             {
                 Debug.Log(spells[spellSelected].getName());
-                players[playerTurn].useSpell(e, spells[spellSelected]);
+                players[playerTurn].useSpell(lastSquareSelected, spells[spellSelected]);
                 spellSelected=-1;
-            } else if (board.IsTileAvailable(selectionX, selectionY)){
-                //Debug.Log("clic ok");
-                ChosenMove(selectionX, selectionY);
+            } else if (board.IsTileAvailable(selectionX, selectionZ)){
+                ChosenMove(selectionX, selectionZ);
             }
         }
     }
@@ -92,26 +94,27 @@ public class BoardManager : MonoBehaviour
         Vector3 widthLine = Vector3.right * board.getTileSize() * board.getNbTiles();
         Vector3 heigthLine = Vector3.forward * board.getTileSize() * board.getNbTiles();
     
+        
         for(int i=0; i<=board.getNbTiles(); i++){
             Vector3 start = Vector3.forward * i;
-            Debug.DrawLine(start, start + widthLine);
+            Debug.DrawLine(start + offset, start + widthLine + offset);
             for(int j=0; j<=board.getNbTiles(); j++){
                 start = Vector3.right * i;
-                Debug.DrawLine(start, start + heigthLine);
+                Debug.DrawLine(start + offset, start + heigthLine + offset);
             }
         }
 
         // Draw selection
-        if(selectionX >= 0 && selectionY >= 0)
+        if(selectionX >= 0 && selectionZ >= 0)
         {
-            Debug.DrawLine(Vector3.forward * selectionY + Vector3.right * selectionX,
-            Vector3.forward * (selectionY + 1) + Vector3.right * (selectionX + 1));
+            Debug.DrawLine(Vector3.forward * selectionZ + Vector3.right * selectionX + offset,
+            Vector3.forward * (selectionZ + 1) + Vector3.right * (selectionX + 1) + offset);
         }
         //Debug.Log(board.getElements().GetLength(0));
         for(int x = 0; x < board.getElements().GetLength(0); x++){
             for(int z = 0; z < board.getElements().GetLength(1); z++){
                 if(board.TileContent(x, z) != null){
-                    board.TileContent(x, z).transform.position = board.GetTileCenter(x, z) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2;
+                    board.TileContent(x, z).transform.position = board.GetTileCenter(x, z) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2 + offset;
                 }
             }
         }
@@ -189,18 +192,18 @@ public class BoardManager : MonoBehaviour
         if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 25.0f, LayerMask.GetMask("Plane"))){
             //Debug.Log(hit.point);
             selectionX = (int)hit.point.x;
-            selectionY = (int)hit.point.z;
+            selectionZ = (int)hit.point.z;
         }
         else
         {
             selectionX = -1;
-            selectionY = -1;
+            selectionZ = -1;
         }
     }
  
     private void SpawnChosen(int indexPrefab, int x, int z)
     {
-        GameObject go = Instantiate(prefabs[indexPrefab], board.GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2,
+        GameObject go = Instantiate(prefabs[indexPrefab], board.GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2 + offset,
         Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
         Chosen chosen = go.GetComponent<Chosen>();
@@ -212,7 +215,7 @@ public class BoardManager : MonoBehaviour
 
     private void SpawnObstacle(int indexPrefab, int x, int z)
     {
-        GameObject go = Instantiate(prefabs[indexPrefab], board.GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2,
+        GameObject go = Instantiate(prefabs[indexPrefab], board.GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2 + offset,
         Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
         Obstacles obstacle = go.GetComponent<Obstacles>();
@@ -241,6 +244,7 @@ public class BoardManager : MonoBehaviour
     public void EndTurn()
     {
         players[playerTurn].passTurn();
+        spellSelected = -1;
         playerTurn = (playerTurn + 1) % players.Count;
         hm.updateHUD();
         players[playerTurn].beginTurn();

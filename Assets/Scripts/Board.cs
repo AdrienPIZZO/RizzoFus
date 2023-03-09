@@ -7,11 +7,18 @@ public class Board
     private float tileSize /*= 1.0f*/;
     private float tileOffset /*= 0.5f*/;
     private int nbTiles /* = 8*/;
-    private Entity[,] elements;/*{set;get;}*/
+    //private Entity[,] elements;/*{set;get;}*/
+    public Square[,] squares;/*{set;get;}*/
     public Board(float tileSize, float tileOffset, int nbTiles){
         this.tileSize = tileSize;
         this.tileOffset = tileOffset;
         this.nbTiles = nbTiles;
+        squares =  new Square[nbTiles, nbTiles];
+        for(int x=0; x<nbTiles; x++){
+            for (int z=0; z<nbTiles; z++){
+                squares[x,z]=new Square(this, x, z);
+            }
+        }
     }
     public int getNbTiles(){
         return nbTiles;
@@ -22,14 +29,16 @@ public class Board
     public float getTileOffset(){
         return tileOffset;
     }
+    /*
     public void initElements(){
-        elements =  new Entity[nbTiles, nbTiles];
+        squares =  new Square[nbTiles, nbTiles];
     }
-    public void setElement(int x, int z, Entity element){
-        this.elements[x, z] = element;
+    */
+    public void setElement(int x, int z, Entity e){
+        this.squares[x, z].occupant = e;
     }
-    public Entity[,] getElements(){
-        return elements;
+    public Square[,] getElements(){
+        return squares;
     }
     public Vector3 GetTileCenter(int x, int z){
         Vector3 origin = Vector3.zero;
@@ -39,13 +48,13 @@ public class Board
     }
     public bool IsTileAvailable(int x, int z){
         //Debug.Log(elements[x,z]);
-        return x >= 0 && z >= 0 && x < nbTiles && z < nbTiles && elements[x, z] == null;   //Check if there is no object on the tile we are trying to move on
+        return x >= 0 && z >= 0 && x < nbTiles && z < nbTiles && squares[x, z].occupant == null;   //Check if there is no object on the tile we are trying to move on
     }
     public Entity TileContent(int x, int z){
         //Debug.Log(elements[x,z]);
         if ( x >= 0 && z >= 0 && x < nbTiles && z < nbTiles )
         {
-             return elements[x, z];
+             return squares[x, z].occupant;
         }
            
         return null;
