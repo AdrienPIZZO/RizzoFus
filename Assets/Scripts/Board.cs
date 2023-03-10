@@ -2,57 +2,100 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Board
+public class Board : MonoBehaviour
 {
-    private float tileSize /*= 1.0f*/;
-    private float tileOffset /*= 0.5f*/;
-    private int nbTiles /* = 8*/;
+    private float SquareSize /*= 1.0f*/;
+    private float SquareOffset /*= 0.5f*/;
+    private int nbSquares /* = 8*/;
     //private Entity[,] elements;/*{set;get;}*/
     public Square[,] squares;/*{set;get;}*/
-    public Board(float tileSize, float tileOffset, int nbTiles){
-        this.tileSize = tileSize;
-        this.tileOffset = tileOffset;
-        this.nbTiles = nbTiles;
-        squares =  new Square[nbTiles, nbTiles];
-        for(int x=0; x<nbTiles; x++){
-            for (int z=0; z<nbTiles; z++){
-                squares[x,z]=new Square(this, x, z);
+    public GameObject[,] squaresGO;/*{set;get;}*/ //Duplicate used for swaping meshRender material
+    public int[,] reachableSquares;
+    public bool isASpellSelected = false;
+    public List<GameObject> prefabs;
+    public List<Material> materials;
+    Vector3 offset;
+
+    private void Start()
+    {
+
+    }
+    private void Update()
+    {
+
+    }
+
+    public void init(float SquareSize, float SquareOffset, int nbSquares, Vector3 offset){
+        this.SquareSize = SquareSize;
+        this.SquareOffset = SquareOffset;
+        this.nbSquares = nbSquares;
+        this.offset=offset;
+        squares =  new Square[nbSquares, nbSquares];
+        squaresGO =  new GameObject[nbSquares, nbSquares];
+        reachableSquares =  new int[nbSquares, nbSquares];
+        for(int x=0; x<nbSquares; x++){
+            for (int z=0; z<nbSquares; z++){
+                GameObject go = Instantiate(prefabs[0], GetSquareCenter(x, z) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2 + offset,
+                Quaternion.identity) as GameObject;
+                go.transform.SetParent(transform);
+                Square square = go.GetComponent<Square>();
+                squaresGO[x,z]=go;
+                squares[x,z]=square;
+                square.init(this, x, z);
             }
         }
     }
-    public int getNbTiles(){
-        return nbTiles;
+
+//Verification of all castingCondition of the spell to diplay the targetables squares
+    public void updateReachableSquare(Spell s, (int, int) position){
+        isASpellSelected = true;
+        //int squareSatus = 0;// 0 unreachable, 1 in range but no LOS, 2 everything is good -> cast spell ok 
+        int range = -1;
+        for(int x = 0; x < reachableSquares.GetLength(0); x++){
+            for(int z = 0; z < reachableSquares.GetLength(1); z++){
+                range = Utils.range(position.Item1, position.Item2, x, z);
+                if(range >= s.castingCondition.range.Item1 && range <= s.castingCondition.range.Item2){ //if square is in range
+                    squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[2];
+                }
+            }
+        }        
     }
-    public float getTileSize(){
-        return tileSize;
+    public void resetReachableSquares(){
+            isASpellSelected = false;
+            for(int x = 0; x < reachableSquares.GetLength(0); x++){
+                for(int z = 0; z < reachableSquares.GetLength(1); z++){
+                     squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[0];
+                }
+            }
     }
-    public float getTileOffset(){
-        return tileOffset;
+    public int getNbSquares(){
+        return nbSquares;
     }
-    /*
-    public void initElements(){
-        squares =  new Square[nbTiles, nbTiles];
+    public float getSquareSize(){
+        return SquareSize;
     }
-    */
+    public float getSquareOffset(){
+        return SquareOffset;
+    }
     public void setElement(int x, int z, Entity e){
         this.squares[x, z].occupant = e;
     }
     public Square[,] getElements(){
         return squares;
     }
-    public Vector3 GetTileCenter(int x, int z){
+    public Vector3 GetSquareCenter(int x, int z){
         Vector3 origin = Vector3.zero;
-        origin.x += (tileSize * x) + tileOffset;
-        origin.z += (tileSize * z) + tileOffset;
+        origin.x += (SquareSize * x) + SquareOffset;
+        origin.z += (SquareSize * z) + SquareOffset;
         return origin;
     }
-    public bool IsTileAvailable(int x, int z){
+    public bool IsSquareAvailable(int x, int z){
         //Debug.Log(elements[x,z]);
-        return x >= 0 && z >= 0 && x < nbTiles && z < nbTiles && squares[x, z].occupant == null;   //Check if there is no object on the tile we are trying to move on
+        return x >= 0 && z >= 0 && x < nbSquares && z < nbSquares && squares[x, z].occupant == null;   //Check if there is no object on the Square we are trying to move on
     }
-    public Entity TileContent(int x, int z){
+    public Entity SquareContent(int x, int z){
         //Debug.Log(elements[x,z]);
-        if ( x >= 0 && z >= 0 && x < nbTiles && z < nbTiles )
+        if ( x >= 0 && z >= 0 && x < nbSquares && z < nbSquares )
         {
              return squares[x, z].occupant;
         }
@@ -80,7 +123,7 @@ public class Board
             Node res4 = null;
             current.childrens = new List<Node>();
 
-            if (current.x + 1 < nbTiles && IsTileAvailable(current.x+1, current.z))
+            if (current.x + 1 < nbSquares && IsSquareAvailable(current.x+1, current.z))
             {
                 node = new Node(current.x + 1, current.z);
                 node.parent = current;
@@ -88,7 +131,7 @@ public class Board
                 res1 = PathFinding(node, x, z, nbMP - 1, leaves);
                 if (res1 != null) return res1;
             }
-            if (current.z + 1 < nbTiles && IsTileAvailable(current.x, current.z+1))
+            if (current.z + 1 < nbSquares && IsSquareAvailable(current.x, current.z+1))
             {
                 node = new Node(current.x, current.z + 1);
                 node.parent = current;
@@ -96,7 +139,7 @@ public class Board
                 res2 = PathFinding(node, x, z, nbMP - 1, leaves);
                 if (res2 != null) return res2;
             }
-            if (current.x - 1 >= 0 && IsTileAvailable(current.x-1, current.z))
+            if (current.x - 1 >= 0 && IsSquareAvailable(current.x-1, current.z))
             {
                 node = new Node(current.x - 1, current.z);
                 node.parent = current;
@@ -104,7 +147,7 @@ public class Board
                 res3 = PathFinding(node, x, z, nbMP - 1, leaves);
                 if (res3 != null) return res3;
             } 
-            if (current.z - 1 >= 0 && IsTileAvailable(current.x, current.z-1))
+            if (current.z - 1 >= 0 && IsSquareAvailable(current.x, current.z-1))
             {
                 node = new Node(current.x, current.z - 1);
                 node.parent = current;

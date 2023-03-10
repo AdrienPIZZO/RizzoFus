@@ -6,8 +6,8 @@ using TMPro;
 
 public class HUDManager : MonoBehaviour
 {
-    public GameObject Board;
-    private BoardManager bm;
+    public GameObject Game;
+    private Game game;
     public List<GameObject> prefabs;
 
     //Declaration for updateSpellButton
@@ -30,7 +30,7 @@ public class HUDManager : MonoBehaviour
     }
 
     public void initHUD(){
-        bm = Board.GetComponent<BoardManager>();
+        game = Game.GetComponent<Game>();
 
         go = Instantiate(prefabs[0], new Vector3(1400, 25, 0), Quaternion.identity) as GameObject;
             go.transform.SetParent(transform);
@@ -41,7 +41,7 @@ public class HUDManager : MonoBehaviour
         
 
         int i = 0;
-        foreach(KeyValuePair<int, Spell> s in bm.players[bm.playerTurn].spells){
+        foreach(KeyValuePair<int, Spell> s in game.players[game.playerTurn].spells){
             go = Instantiate(prefabs[0], new Vector3(i*200 + 100, 25, 0), Quaternion.identity) as GameObject;
             go.transform.SetParent(transform);
             b = go.GetComponent<Button>();
@@ -60,7 +60,7 @@ public class HUDManager : MonoBehaviour
             Destroy(go);
         }
         int i = 0;
-        foreach(KeyValuePair<int, Spell> s in bm.players[bm.playerTurn].spells){
+        foreach(KeyValuePair<int, Spell> s in game.players[game.playerTurn].spells){
             go = Instantiate(prefabs[0], new Vector3(i*200 + 100, 25, 0), Quaternion.identity) as GameObject;
             go.transform.SetParent(transform);
             b = go.GetComponent<Button>();
@@ -74,12 +74,12 @@ public class HUDManager : MonoBehaviour
 
     public void EndTurnPressed()
     {
-        bm.EndTurn();
+        game.EndTurn();
     }
 
     public void spellButtonHandler(int id)
     {
-        bm.spellSelected = id;
+        game.updateSpellSelected(id);
     }
 
 }

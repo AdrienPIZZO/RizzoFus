@@ -8,7 +8,7 @@ public abstract class Effect
     protected Board board;
     public abstract void apply(Chosen caster, Chosen target);
     public abstract void apply(Chosen caster, Obstacles target);
-    /*public void apply(Chosen caster, EmptyTile target);*/
+    /*public void apply(Chosen caster, EmptySquare target);*/
 }
 
 public class PhysicalDamage : Effect
@@ -29,17 +29,17 @@ public class PhysicalDamage : Effect
         Debug.Log("You applied PhysicalDamage effect on an obstacle!");
     }
 
-    /*public void apply(Chosen caster, EmptyTile target){
+    /*public void apply(Chosen caster, EmptySquare target){
     }*/
 }
 
 public class MoveTarget : Effect
 {
-    public int nbTile;
+    public int nbSquare;
     
-    public MoveTarget(Board board, int nbTile){
+    public MoveTarget(Board board, int nbSquare){
         this.board = board;
-        this.nbTile = nbTile;
+        this.nbSquare = nbSquare;
     }
 
     public override void apply(Chosen caster, Chosen target){
@@ -57,9 +57,9 @@ public class MoveTarget : Effect
             Debug.Log("Error orientation!");
         }
 
-        int currentDistance = nbTile;
+        int currentDistance = nbSquare;
         (int, int) currentPos = (target.currentX, target.currentZ);
-        while (currentDistance > 0 && board.IsTileAvailable(currentPos.Item1 + orientation.Item1, currentPos.Item2 + orientation.Item2)){
+        while (currentDistance > 0 && board.IsSquareAvailable(currentPos.Item1 + orientation.Item1, currentPos.Item2 + orientation.Item2)){
             currentPos.Item1 += orientation.Item1;
             currentPos.Item2 += orientation.Item2;
             Debug.Log("currentDistance: " + currentDistance);
@@ -75,7 +75,7 @@ public class MoveTarget : Effect
         Debug.Log("You applied MoveTarget effect on an obstacle!");
     }
 
-    /*public void apply(Chosen caster, EmptyTile target){
+    /*public void apply(Chosen caster, EmptySquare target){
     }*/
 }
 

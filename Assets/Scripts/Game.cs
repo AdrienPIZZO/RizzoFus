@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BoardManager : MonoBehaviour
+public class Game : MonoBehaviour
 {
     private int selectionX = -1;
     private int selectionZ = -1;
     public int playerTurn = 0;
-    public int spellSelected = -1;
+    public Spell spellSelected = null;
     public GameObject Canvas;
     public HUDManager hm;
-    public List<GameObject> prefabs; // Filled by Unity with prefabs folder content
+    public List<GameObject> prefabs;
     public List<Chosen> players;
-    private Board board; 
+    public Board board; 
     private Node root;
     private List<Node> leaves = new List<Node>();
     public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
@@ -23,34 +23,35 @@ public class BoardManager : MonoBehaviour
     private void Start()
     {
         offset = transform.position;
-        board = new Board(1.0f, 0.5f, 16);
+        //board = new Board(1.0f, 0.5f, 16, offset);
 
+        board.init(1.0f, 0.5f, 16, offset);
         SpawnAllChosen();
 
         int id = 0;
         //create all spells in the game
-        Spell electricBlade = new Spell("Electric blade", 20);
+        Spell electricBlade = new Spell("Electric blade", 20, new CastingCondition((1,6), true, true));
         electricBlade.effects.Add(new PhysicalDamage(board, 5));
         spells.Add(id++, electricBlade);
 
-        Spell fireBall = new Spell("Fire ball", 30);
+        Spell fireBall = new Spell("Fire ball", 30, new CastingCondition((1,6), true, true));
         fireBall.effects.Add(new PhysicalDamage(board, 20));
         spells.Add(id++, fireBall);
 
-        Spell frozenGasp = new Spell("Frozen Gasp", 30);
+        Spell frozenGasp = new Spell("Frozen Gasp", 30, new CastingCondition((1,6), true, true));
         frozenGasp.effects.Add(new PhysicalDamage(board, 20));
         frozenGasp.effects.Add(new MPbuff(2, false, -1));
         spells.Add(id++, frozenGasp);
 
-        Spell shuriken = new Spell("Shuriken", 30);
+        Spell shuriken = new Spell("Shuriken", 30, new CastingCondition((1,6), true, true));
         shuriken.effects.Add(new PhysicalDamage(board, 10));
         spells.Add(id++, shuriken);
 
-        Spell celerity = new Spell("Celerity", 10);
+        Spell celerity = new Spell("Celerity", 10, new CastingCondition((1,6), true, true));
         celerity.effects.Add(new MPbuff(1, true, 3));
         spells.Add(id++, celerity);
 
-        Spell jadePalm = new Spell("Jade palm", 40);
+        Spell jadePalm = new Spell("Jade palm", 40, new CastingCondition((1,6), true, true));
         jadePalm.effects.Add(new PhysicalDamage(board, 5));
         jadePalm.effects.Add(new MoveTarget(board, 2));
         spells.Add(id++, jadePalm);
@@ -77,28 +78,30 @@ public class BoardManager : MonoBehaviour
         UpdateSelection();
         DrawBoard();
 
+        // onClick use spell or move chosen
         if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionZ != -1))
         {
             lastSquareSelected = board.squares[selectionX, selectionZ];
-            if (spellSelected!=-1)
+            if (spellSelected!=null)
             {
-                Debug.Log(spells[spellSelected].getName());
-                players[playerTurn].useSpell(lastSquareSelected, spells[spellSelected]);
-                spellSelected=-1;
-            } else if (board.IsTileAvailable(selectionX, selectionZ)){
+                Debug.Log(spellSelected.getName());
+                players[playerTurn].useSpell(lastSquareSelected, spellSelected);
+            } else if (board.IsSquareAvailable(selectionX, selectionZ)){
                 ChosenMove(selectionX, selectionZ);
             }
+            spellSelected=null; //Unselect spell on click
+            board.resetReachableSquares();
         }
     }
     private void DrawBoard(){
-        Vector3 widthLine = Vector3.right * board.getTileSize() * board.getNbTiles();
-        Vector3 heigthLine = Vector3.forward * board.getTileSize() * board.getNbTiles();
+        Vector3 widthLine = Vector3.right * board.getSquareSize() * board.getNbSquares();
+        Vector3 heigthLine = Vector3.forward * board.getSquareSize() * board.getNbSquares();
     
         
-        for(int i=0; i<=board.getNbTiles(); i++){
+        for(int i=0; i<=board.getNbSquares(); i++){
             Vector3 start = Vector3.forward * i;
             Debug.DrawLine(start + offset, start + widthLine + offset);
-            for(int j=0; j<=board.getNbTiles(); j++){
+            for(int j=0; j<=board.getNbSquares(); j++){
                 start = Vector3.right * i;
                 Debug.DrawLine(start + offset, start + heigthLine + offset);
             }
@@ -110,11 +113,12 @@ public class BoardManager : MonoBehaviour
             Debug.DrawLine(Vector3.forward * selectionZ + Vector3.right * selectionX + offset,
             Vector3.forward * (selectionZ + 1) + Vector3.right * (selectionX + 1) + offset);
         }
-        //Debug.Log(board.getElements().GetLength(0));
+
+        //DO Better for redraw board model
         for(int x = 0; x < board.getElements().GetLength(0); x++){
             for(int z = 0; z < board.getElements().GetLength(1); z++){
-                if(board.TileContent(x, z) != null){
-                    board.TileContent(x, z).transform.position = board.GetTileCenter(x, z) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2 + offset;
+                if(board.SquareContent(x, z) != null){
+                    board.SquareContent(x, z).transform.position = board.GetSquareCenter(x, z) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2 + offset;
                 }
             }
         }
@@ -123,7 +127,7 @@ public class BoardManager : MonoBehaviour
     private void ChosenMove(int x, int z)
     {
         int distance = Utils.range(players[playerTurn].currentX, players[playerTurn].currentZ, x, z);
-        //Target tile too far from the chosen with his MP
+        //Target Square too far from the chosen with his MP
         if (distance > players[playerTurn].MP)
         {
             Debug.Log("You can't move that far.");
@@ -203,7 +207,7 @@ public class BoardManager : MonoBehaviour
  
     private void SpawnChosen(int indexPrefab, int x, int z)
     {
-        GameObject go = Instantiate(prefabs[indexPrefab], board.GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2 + offset,
+        GameObject go = Instantiate(prefabs[indexPrefab], board.GetSquareCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2 + offset,
         Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
         Chosen chosen = go.GetComponent<Chosen>();
@@ -215,7 +219,7 @@ public class BoardManager : MonoBehaviour
 
     private void SpawnObstacle(int indexPrefab, int x, int z)
     {
-        GameObject go = Instantiate(prefabs[indexPrefab], board.GetTileCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2 + offset,
+        GameObject go = Instantiate(prefabs[indexPrefab], board.GetSquareCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2 + offset,
         Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
         Obstacles obstacle = go.GetComponent<Obstacles>();
@@ -244,15 +248,17 @@ public class BoardManager : MonoBehaviour
     public void EndTurn()
     {
         players[playerTurn].passTurn();
-        spellSelected = -1;
+        spellSelected = null;
+        board.resetReachableSquares();
         playerTurn = (playerTurn + 1) % players.Count;
         hm.updateHUD();
         players[playerTurn].beginTurn();
 
     }
 
-    public void SetAttackSelected(bool b)
+    public void updateSpellSelected(int id)
     {
-     //   attackSelected = b;
+        spellSelected = spells[id];
+        board.updateReachableSquare(spellSelected, (players[playerTurn].currentX, players[playerTurn].currentZ));
     }
 }
