@@ -30,28 +30,28 @@ public class Game : MonoBehaviour
 
         int id = 0;
         //create all spells in the game
-        Spell electricBlade = new Spell("Electric blade", 20, new CastingCondition((1,6), true, true));
+        Spell electricBlade = new Spell("Electric blade", 20, new CastingCondition((1,1), true, true));
         electricBlade.effects.Add(new PhysicalDamage(board, 5));
         spells.Add(id++, electricBlade);
 
-        Spell fireBall = new Spell("Fire ball", 30, new CastingCondition((1,6), true, true));
+        Spell fireBall = new Spell("Fire ball", 30, new CastingCondition((2,6), false, true));
         fireBall.effects.Add(new PhysicalDamage(board, 20));
         spells.Add(id++, fireBall);
 
-        Spell frozenGasp = new Spell("Frozen Gasp", 30, new CastingCondition((1,6), true, true));
+        Spell frozenGasp = new Spell("Frozen Gasp", 30, new CastingCondition((1,4), false, true));
         frozenGasp.effects.Add(new PhysicalDamage(board, 20));
         frozenGasp.effects.Add(new MPbuff(2, false, -1));
         spells.Add(id++, frozenGasp);
 
-        Spell shuriken = new Spell("Shuriken", 30, new CastingCondition((1,6), true, true));
+        Spell shuriken = new Spell("Shuriken", 30, new CastingCondition((1,8), true, true));
         shuriken.effects.Add(new PhysicalDamage(board, 10));
         spells.Add(id++, shuriken);
 
-        Spell celerity = new Spell("Celerity", 10, new CastingCondition((1,6), true, true));
+        Spell celerity = new Spell("Celerity", 10, new CastingCondition((0,0), true, true));
         celerity.effects.Add(new MPbuff(1, true, 3));
         spells.Add(id++, celerity);
 
-        Spell jadePalm = new Spell("Jade palm", 40, new CastingCondition((1,6), true, true));
+        Spell jadePalm = new Spell("Jade palm", 40, new CastingCondition((1,3), true, true));
         jadePalm.effects.Add(new PhysicalDamage(board, 5));
         jadePalm.effects.Add(new MoveTarget(board, 2));
         spells.Add(id++, jadePalm);
@@ -85,7 +85,11 @@ public class Game : MonoBehaviour
             if (spellSelected!=null)
             {
                 Debug.Log(spellSelected.getName());
-                players[playerTurn].useSpell(lastSquareSelected, spellSelected);
+                if(board.reachableSquares[selectionX, selectionZ]==2){
+                    players[playerTurn].useSpell(lastSquareSelected, spellSelected);
+                } else{
+                    Debug.Log("Target out of reach!");
+                }
             } else if (board.IsSquareAvailable(selectionX, selectionZ)){
                 ChosenMove(selectionX, selectionZ);
             }
@@ -114,7 +118,7 @@ public class Game : MonoBehaviour
             Vector3.forward * (selectionZ + 1) + Vector3.right * (selectionX + 1) + offset);
         }
 
-        //DO Better for redraw board model
+        //TODO: Do better for redraw board model
         for(int x = 0; x < board.getElements().GetLength(0); x++){
             for(int z = 0; z < board.getElements().GetLength(1); z++){
                 if(board.SquareContent(x, z) != null){
@@ -258,6 +262,7 @@ public class Game : MonoBehaviour
 
     public void updateSpellSelected(int id)
     {
+        
         spellSelected = spells[id];
         board.updateReachableSquare(spellSelected, (players[playerTurn].currentX, players[playerTurn].currentZ));
     }

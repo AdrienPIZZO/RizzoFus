@@ -48,15 +48,18 @@ public class Board : MonoBehaviour
 
 //Verification of all castingCondition of the spell to diplay the targetables squares
     public void updateReachableSquare(Spell s, (int, int) position){
+        resetReachableSquares();
         isASpellSelected = true;
         //int squareSatus = 0;// 0 unreachable, 1 in range but no LOS, 2 everything is good -> cast spell ok 
         int range = -1;
+        //TODO Spell with range (0,0) not working!
         for(int x = 0; x < reachableSquares.GetLength(0); x++){
             for(int z = 0; z < reachableSquares.GetLength(1); z++){
                 range = Utils.range(position.Item1, position.Item2, x, z);
                 if(range >= s.castingCondition.range.Item1 && range <= s.castingCondition.range.Item2){ //if square is in range
-                    squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[2];
+                    reachableSquares[x,z]=2;
                 }
+                squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[reachableSquares[x,z]];
             }
         }        
     }
@@ -64,7 +67,8 @@ public class Board : MonoBehaviour
             isASpellSelected = false;
             for(int x = 0; x < reachableSquares.GetLength(0); x++){
                 for(int z = 0; z < reachableSquares.GetLength(1); z++){
-                     squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[0];
+                    reachableSquares[x,z]=0;
+                    squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[0];
                 }
             }
     }
