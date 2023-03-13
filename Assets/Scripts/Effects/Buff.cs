@@ -13,9 +13,8 @@ public class Buff : Effect //Effect apply instant on use
     
 
     public Buff(int nbTurn, bool instant){
-            
-            this.nbTurnRemaining = nbTurn;
-            this.instant = instant;
+        this.nbTurnRemaining = nbTurn;
+        this.instant = instant;
     }
 
     public override void apply(Chosen caster, Chosen target)

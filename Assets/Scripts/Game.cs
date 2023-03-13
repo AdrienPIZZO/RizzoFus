@@ -87,6 +87,7 @@ public class Game : MonoBehaviour
                 Debug.Log(spellSelected.getName());
                 if(board.reachableSquares[selectionX, selectionZ]==2){
                     players[playerTurn].useSpell(lastSquareSelected, spellSelected);
+                    hm.updateHUDInfo();
                 } else{
                     Debug.Log("Target out of reach!");
                 }
@@ -256,8 +257,8 @@ public class Game : MonoBehaviour
         board.resetReachableSquares();
         playerTurn = (playerTurn + 1) % players.Count;
         hm.updateHUD();
+        hm.updateHUDInfo();
         players[playerTurn].beginTurn();
-
     }
 
     public void updateSpellSelected(int id)

@@ -17,7 +17,6 @@ public class PhysicalDamage : Effect
     public PhysicalDamage(Board board, int damage){
         this.board = board;
         this.damage = damage;
-
     }
 
     public override void apply(Chosen caster, Chosen target){
@@ -28,7 +27,6 @@ public class PhysicalDamage : Effect
     public override void apply(Chosen caster, Obstacles target){
         Debug.Log("You applied PhysicalDamage effect on an obstacle!");
     }
-
     /*public void apply(Chosen caster, EmptySquare target){
     }*/
 }

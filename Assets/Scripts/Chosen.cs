@@ -15,7 +15,7 @@ public class Chosen : Entity
     public int MP = MPMAX;
     public int HP = HPMAX;
     public int powerGauge = PWRGAUGEMAX/2;
-     public int powerRegen = 50;
+    public int powerRegen = 50;
     public int armor = 10;// % based
     public int strength = 5;
     public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
@@ -43,7 +43,6 @@ public class Chosen : Entity
     {
         MP = MPMAX;
         powerGauge = powerGauge + powerRegen <= PWRGAUGEMAX ? powerGauge + powerRegen : PWRGAUGEMAX;
-
     }
 
     private bool isDead()

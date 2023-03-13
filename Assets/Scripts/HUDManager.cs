@@ -17,10 +17,22 @@ public class HUDManager : MonoBehaviour
 
     private List<GameObject> spellButtons = new List<GameObject>();
 
+    private GameObject hpBar;
+    private GameObject powerGaugeBar;
+
     // Start is called before the first frame update
     void Start()
     {
+        hpBar = Instantiate(prefabs[1], new Vector3(1000, 25, 0), Quaternion.identity) as GameObject;
+        hpBar.transform.SetParent(transform);
+        tm = hpBar.GetComponentInChildren<TextMeshProUGUI>();
+        tm.text = game.players[game.playerTurn].HP.ToString() + " HP";
 
+        powerGaugeBar = Instantiate(prefabs[1], new Vector3(1200, 25, 0), Quaternion.identity) as GameObject;
+        powerGaugeBar.transform.SetParent(transform);
+        powerGaugeBar.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 300);
+        tm = powerGaugeBar.GetComponentInChildren<TextMeshProUGUI>();
+        tm.text = game.players[game.playerTurn].powerGauge.ToString() + " POWER";
     }
 
     // Update is called once per frame
@@ -51,11 +63,9 @@ public class HUDManager : MonoBehaviour
             i++;
             spellButtons.Add(go);
         }
-        
     }
 
-        public void updateHUD(){
-        
+    public void updateHUD(){
         foreach(GameObject go in spellButtons){
             Destroy(go);
         }
@@ -69,7 +79,13 @@ public class HUDManager : MonoBehaviour
             tm.text = s.Value.getName();
             i++;
         }
-        
+    }
+
+    public void updateHUDInfo(){//hpBar for now, see if we rename both updates
+        tm = hpBar.GetComponentInChildren<TextMeshProUGUI>();
+        tm.text = game.players[game.playerTurn].HP.ToString() + " HP";
+        tm = powerGaugeBar.GetComponentInChildren<TextMeshProUGUI>();
+        tm.text = game.players[game.playerTurn].powerGauge.ToString() + " POWER";
     }
 
     public void EndTurnPressed()
