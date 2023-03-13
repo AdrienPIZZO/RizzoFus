@@ -52,7 +52,18 @@ public class Board : MonoBehaviour
         isASpellSelected = true;
         //int squareSatus = 0;// 0 unreachable, 1 in range but no LOS, 2 everything is good -> cast spell ok 
         int range = -1;
-        //TODO Spell with range (0,0) not working!
+
+        for(int i=s.castingCondition.range.Item1; i<=s.castingCondition.range.Item2; i++){
+            List<(int, int)> squarePos = Utils.getSquaresAtRange(i, position, this);
+            
+            for(int j=0; j<squarePos.Count; j++){
+                Debug.Log(squarePos[j]);
+                //Debug.Log("HELO THERE");
+                reachableSquares[squarePos[j].Item1, squarePos[j].Item2]=2;
+                squaresGO[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = materials[reachableSquares[squarePos[j].Item1, squarePos[j].Item2]];
+            }
+        }
+        /*
         for(int x = 0; x < reachableSquares.GetLength(0); x++){
             for(int z = 0; z < reachableSquares.GetLength(1); z++){
                 range = Utils.range(position.Item1, position.Item2, x, z);
@@ -61,7 +72,7 @@ public class Board : MonoBehaviour
                 }
                 squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[reachableSquares[x,z]];
             }
-        }        
+        }*/
     }
     public void resetReachableSquares(){
             isASpellSelected = false;
@@ -77,6 +88,9 @@ public class Board : MonoBehaviour
     }
     public float getSquareSize(){
         return SquareSize;
+    }
+    public bool doesSquareExist(int x, int z){
+        return x >= 0 && z >= 0 && x < nbSquares && z < nbSquares;
     }
     public float getSquareOffset(){
         return SquareOffset;
@@ -95,7 +109,7 @@ public class Board : MonoBehaviour
     }
     public bool IsSquareAvailable(int x, int z){
         //Debug.Log(elements[x,z]);
-        return x >= 0 && z >= 0 && x < nbSquares && z < nbSquares && squares[x, z].occupant == null;   //Check if there is no object on the Square we are trying to move on
+        return doesSquareExist(x, z) && squares[x, z].occupant == null;   //Check if there is no object on the Square we are trying to move on
     }
     public Entity SquareContent(int x, int z){
         //Debug.Log(elements[x,z]);

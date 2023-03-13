@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2836918308022850059}
   - component: {fileID: 3201394540523733251}
   m_Layer: 0
-  m_Name: Sphere
+  m_Name: Obstacle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30,6 +30,7 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
@@ -41,7 +42,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4404805552310922836}
-  m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &6946235406924161839
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -53,14 +54,16 @@ MeshRenderer:
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
   m_MotionVectors: 1
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 70cf5a105271e15489a4bf4a9b49e76b, type: 2}
+  - {fileID: 2100000, guid: 76d11dd1a9e2c3a4d81f92afdfdcc118, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -81,6 +84,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!135 &2836918308022850059
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -106,3 +110,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c96fdf6dec508445a883c7c1c8666e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  board: {fileID: 0}

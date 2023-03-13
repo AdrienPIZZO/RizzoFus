@@ -5,8 +5,8 @@ using static Effect;
 
 public struct CastingCondition {
     public (int,int) range;
-    bool line;
-    bool LOS;
+    public bool line;
+    public bool LOS;
 
     public CastingCondition((int,int) range, bool line, bool LOS){
         this.range = range;

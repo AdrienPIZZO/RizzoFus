@@ -62,12 +62,9 @@ public class MoveTarget : Effect
         while (currentDistance > 0 && board.IsSquareAvailable(currentPos.Item1 + orientation.Item1, currentPos.Item2 + orientation.Item2)){
             currentPos.Item1 += orientation.Item1;
             currentPos.Item2 += orientation.Item2;
-            Debug.Log("currentDistance: " + currentDistance);
             currentDistance--;
         }
-        Debug.Log("OLD X: " + target.currentX + "   Z: " + target.currentZ);
         target.SetPosition(currentPos.Item1, currentPos.Item2);
-        Debug.Log("NEW X: " + target.currentX + "   Z: " + target.currentZ);
     }
 
 
