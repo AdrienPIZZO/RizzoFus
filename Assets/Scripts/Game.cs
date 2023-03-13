@@ -197,7 +197,7 @@ public class Game : MonoBehaviour
             return;
         
         RaycastHit hit;
-        if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 25.0f, LayerMask.GetMask("Plane"))){
+        if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 50.0f, LayerMask.GetMask("Plane"))){
             //Debug.Log(hit.point);
             selectionX = (int)hit.point.x;
             selectionZ = (int)hit.point.z;
