@@ -19,16 +19,22 @@ public class HUDManager : MonoBehaviour
 
     private GameObject hpBar;
     private GameObject powerGaugeBar;
+    private GameObject mpBar;
 
     // Start is called before the first frame update
     void Start()
     {
-        hpBar = Instantiate(prefabs[1], new Vector3(1000, 25, 0), Quaternion.identity) as GameObject;
+        hpBar = Instantiate(prefabs[1], new Vector3(100, 750, 0), Quaternion.identity) as GameObject;
         hpBar.transform.SetParent(transform);
         tm = hpBar.GetComponentInChildren<TextMeshProUGUI>();
         tm.text = game.players[game.playerTurn].HP.ToString() + " HP";
 
-        powerGaugeBar = Instantiate(prefabs[1], new Vector3(1200, 25, 0), Quaternion.identity) as GameObject;
+        mpBar = Instantiate(prefabs[1], new Vector3(100, 700, 0), Quaternion.identity) as GameObject;
+        mpBar.transform.SetParent(transform);
+        tm = mpBar.GetComponentInChildren<TextMeshProUGUI>();
+        tm.text = game.players[game.playerTurn].MP.ToString() + " MP";
+
+        powerGaugeBar = Instantiate(prefabs[1], new Vector3(150, 650, 0), Quaternion.identity) as GameObject;
         powerGaugeBar.transform.SetParent(transform);
         powerGaugeBar.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 300);
         tm = powerGaugeBar.GetComponentInChildren<TextMeshProUGUI>();
@@ -86,6 +92,12 @@ public class HUDManager : MonoBehaviour
         tm.text = game.players[game.playerTurn].HP.ToString() + " HP";
         tm = powerGaugeBar.GetComponentInChildren<TextMeshProUGUI>();
         tm.text = game.players[game.playerTurn].powerGauge.ToString() + " POWER";
+        updateHUDMP();
+    }
+
+    public void updateHUDMP(){
+        tm = mpBar.GetComponentInChildren<TextMeshProUGUI>();
+        tm.text = game.players[game.playerTurn].MP.ToString() + " MP";
     }
 
     public void EndTurnPressed()

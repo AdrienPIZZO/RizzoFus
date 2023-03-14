@@ -93,6 +93,7 @@ public class Game : MonoBehaviour
                 }
             } else if (board.IsSquareAvailable(selectionX, selectionZ)){
                 ChosenMove(selectionX, selectionZ);
+                hm.updateHUDMP();
             }
             spellSelected=null; //Unselect spell on click
             board.resetReachableSquares();
@@ -188,7 +189,6 @@ public class Game : MonoBehaviour
         board.setEntityAtPos(x, z, players[playerTurn]);
         board.setEntityAtPos(players[playerTurn].currentX, players[playerTurn].currentZ, null);
         players[playerTurn].SetPosition(x, z);
-        
     }
 
     private void UpdateSelection()
