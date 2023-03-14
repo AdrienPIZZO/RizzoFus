@@ -38,4 +38,15 @@ public class Spell
             e.apply(caster, target);
         }
     }
+
+    public void computeReachableSquares(Board board, (int, int) position){
+        for(int i=castingCondition.range.Item1; i<=castingCondition.range.Item2; i++){
+            List<(int, int)> squarePos = Utils.getSquaresAtRange(i, position, board);
+            for(int j=0; j<squarePos.Count; j++){
+                Debug.Log(squarePos[j]);
+                board.reachableSquares[squarePos[j].Item1, squarePos[j].Item2]=2;
+                board.squaresGO[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = board.materials[board.reachableSquares[squarePos[j].Item1, squarePos[j].Item2]];
+            }
+        }
+    }
 }

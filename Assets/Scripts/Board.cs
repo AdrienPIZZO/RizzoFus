@@ -52,17 +52,7 @@ public class Board : MonoBehaviour
         resetReachableSquares();
         isASpellSelected = true;
         //int squareSatus = 0;// 0 unreachable, 1 in range but no LOS, 2 everything is good -> cast spell ok 
-
-        for(int i=s.castingCondition.range.Item1; i<=s.castingCondition.range.Item2; i++){
-            List<(int, int)> squarePos = Utils.getSquaresAtRange(i, position, this);
-            
-            for(int j=0; j<squarePos.Count; j++){
-                Debug.Log(squarePos[j]);
-                //Debug.Log("HELO THERE");
-                reachableSquares[squarePos[j].Item1, squarePos[j].Item2]=2;
-                squaresGO[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = materials[reachableSquares[squarePos[j].Item1, squarePos[j].Item2]];
-            }
-        }
+        s.computeReachableSquares(this, position);
     }
     public void resetReachableSquares(){
         isASpellSelected = false;
