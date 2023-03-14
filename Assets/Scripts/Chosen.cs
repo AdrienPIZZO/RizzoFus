@@ -61,13 +61,12 @@ public class Chosen : Entity
     {
         if(powerGauge - spell.pwrCost >= 0){//if the chosen has enough power to cast the spell
             powerGauge -= spell.pwrCost;
-            if (square.occupant != null){ //if the tile is not empty
-                square.occupant.targeted(this, spell);
+            if (!square.isEmpty()){
+                square.entity.targeted(this, spell);
             }
-             Debug.Log("Power Gauge: " + powerGauge);
+            Debug.Log("Power Gauge: " + powerGauge);
         } else {
             Debug.Log("You don't have enough power to use this spell!");
         }
-
     }
 }

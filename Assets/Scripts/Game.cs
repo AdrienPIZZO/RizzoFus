@@ -101,7 +101,6 @@ public class Game : MonoBehaviour
     private void DrawBoard(){
         Vector3 widthLine = Vector3.right * board.getSquareSize() * board.getNbSquares();
         Vector3 heigthLine = Vector3.forward * board.getSquareSize() * board.getNbSquares();
-    
         
         for(int i=0; i<=board.getNbSquares(); i++){
             Vector3 start = Vector3.forward * i;
@@ -120,10 +119,10 @@ public class Game : MonoBehaviour
         }
 
         //TODO: Do better for redraw board model
-        for(int x = 0; x < board.getElements().GetLength(0); x++){
-            for(int z = 0; z < board.getElements().GetLength(1); z++){
-                if(board.SquareContent(x, z) != null){
-                    board.SquareContent(x, z).transform.position = board.GetSquareCenter(x, z) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2 + offset;
+        for(int x = 0; x < board.GetSquares().GetLength(0); x++){
+            for(int z = 0; z < board.GetSquares().GetLength(1); z++){
+                if(!board.squares[x, z].isEmpty()){
+                    board.squares[x, z].getEntity().transform.position = board.GetSquareCenter(board.squares[x, z]) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2 + offset;
                 }
             }
         }
@@ -186,8 +185,8 @@ public class Game : MonoBehaviour
         players[playerTurn].MP = tmpMP; //MP left to the chosen after moving
 
         //Moving entities
-        board.setElement(x, z, players[playerTurn]);
-        board.setElement(players[playerTurn].currentX, players[playerTurn].currentZ, null);
+        board.setEntityAtPos(x, z, players[playerTurn]);
+        board.setEntityAtPos(players[playerTurn].currentX, players[playerTurn].currentZ, null);
         players[playerTurn].SetPosition(x, z);
         
     }
@@ -217,7 +216,7 @@ public class Game : MonoBehaviour
         go.transform.SetParent(transform);
         Chosen chosen = go.GetComponent<Chosen>();
         chosen.setBoard(board);
-        board.setElement(x, z, chosen);
+        board.setEntityAtPos(x, z, chosen);
         chosen.SetPosition(x, z);
         players.Add(chosen);
     }
@@ -229,7 +228,7 @@ public class Game : MonoBehaviour
         go.transform.SetParent(transform);
         Obstacles obstacle = go.GetComponent<Obstacles>();
         obstacle.setBoard(board);
-        board.setElement(x, z, obstacle);
+        board.setEntityAtPos(x, z, obstacle);
         obstacle.SetPosition(x, z);
     }
 

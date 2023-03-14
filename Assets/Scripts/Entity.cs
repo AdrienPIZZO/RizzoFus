@@ -10,10 +10,10 @@ public class Entity : MonoBehaviour
 
     public void SetPosition(int x, int z)
     {
-        board.setElement(currentX, currentZ, null);
+        board.setEntityAtPos(currentX, currentZ, null);
         currentX = x;
         currentZ = z;
-        board.setElement(currentX, currentZ, this);
+        board.setEntityAtPos(currentX, currentZ, this);
     }
 
     public void setBoard(Board board){

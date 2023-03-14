@@ -35,13 +35,14 @@ public class Board : MonoBehaviour
         reachableSquares =  new int[nbSquares, nbSquares];
         for(int x=0; x<nbSquares; x++){
             for (int z=0; z<nbSquares; z++){
-                GameObject go = Instantiate(prefabs[0], GetSquareCenter(x, z) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2 + offset,
-                Quaternion.identity) as GameObject;
+                GameObject go = Instantiate(prefabs[0],
+                GetSquareCenter(x, z) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2 + offset, Quaternion.identity) as GameObject;
                 go.transform.SetParent(transform);
                 Square square = go.GetComponent<Square>();
-                squaresGO[x,z]=go;
-                squares[x,z]=square;
+                squaresGO[x,z]= go;
+                squares[x,z]= square;
                 square.init(this, x, z);
+                //go.transform.position = GetSquareCenter(squares[x, z]) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2 + offset;
             }
         }
     }
@@ -63,25 +64,15 @@ public class Board : MonoBehaviour
                 squaresGO[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = materials[reachableSquares[squarePos[j].Item1, squarePos[j].Item2]];
             }
         }
-        /*
-        for(int x = 0; x < reachableSquares.GetLength(0); x++){
-            for(int z = 0; z < reachableSquares.GetLength(1); z++){
-                range = Utils.range(position.Item1, position.Item2, x, z);
-                if(range >= s.castingCondition.range.Item1 && range <= s.castingCondition.range.Item2){ //if square is in range
-                    reachableSquares[x,z]=2;
-                }
-                squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[reachableSquares[x,z]];
-            }
-        }*/
     }
     public void resetReachableSquares(){
-            isASpellSelected = false;
-            for(int x = 0; x < reachableSquares.GetLength(0); x++){
-                for(int z = 0; z < reachableSquares.GetLength(1); z++){
-                    reachableSquares[x,z]=0;
-                    squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[0];
-                }
+        isASpellSelected = false;
+        for(int x = 0; x < reachableSquares.GetLength(0); x++){
+            for(int z = 0; z < reachableSquares.GetLength(1); z++){
+                reachableSquares[x,z]=0;
+                squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[0];
             }
+        }
     }
     public int getNbSquares(){
         return nbSquares;
@@ -95,31 +86,32 @@ public class Board : MonoBehaviour
     public float getSquareOffset(){
         return SquareOffset;
     }
-    public void setElement(int x, int z, Entity e){
-        this.squares[x, z].occupant = e;
-    }
-    public Square[,] getElements(){
-        return squares;
-    }
     public Vector3 GetSquareCenter(int x, int z){
         Vector3 origin = Vector3.zero;
         origin.x += (SquareSize * x) + SquareOffset;
         origin.z += (SquareSize * z) + SquareOffset;
         return origin;
     }
+    public Vector3 GetSquareCenter(Square square){
+        Vector3 origin = Vector3.zero;
+        origin.x += (SquareSize * square.x) + SquareOffset;
+        origin.z += (SquareSize * square.z) + SquareOffset;
+        return origin;
+    }
     public bool IsSquareAvailable(int x, int z){
-        //Debug.Log(elements[x,z]);
-        return doesSquareExist(x, z) && squares[x, z].occupant == null;   //Check if there is no object on the Square we are trying to move on
-    }
-    public Entity SquareContent(int x, int z){
-        //Debug.Log(elements[x,z]);
-        if ( x >= 0 && z >= 0 && x < nbSquares && z < nbSquares )
-        {
-             return squares[x, z].occupant;
+        bool flag = doesSquareExist(x,z);
+        if(flag) {
+            flag = squares[x, z].isEmpty();
         }
-           
-        return null;
+        return flag;
     }
+    public void setEntityAtPos(int x, int z, Entity e){
+        this.squares[x, z].entity = e;
+    }
+    public Square[,] GetSquares(){
+        return squares;
+    }
+    
     public Node PathFinding(Node current, int x, int z, int nbMP, List<Node> leaves){
         //Debug.Log(current.x + " : " + current.z);
         if (current.x == x && current.z == z)

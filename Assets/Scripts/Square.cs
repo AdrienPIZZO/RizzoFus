@@ -8,7 +8,7 @@ public class Square : MonoBehaviour
     public Board board;
     public int x;
     public int z;
-    public Entity occupant;
+    public Entity entity;
     
     public static GameObject prefab;
 
@@ -20,11 +20,18 @@ public class Square : MonoBehaviour
     {
 
     }
-
     public void init(Board board, int x, int z){
         this.board = board;
         this.x = x;
         this.z = z;
-        occupant = null;
+        entity = null;
+    }
+    public bool isEmpty(){
+        //Debug.Log(elements[x,z]);
+        return entity == null;   //Check if there is no object on the Square we are trying to move on
+    }
+    public Entity getEntity(){
+        //Debug.Log(elements[x,z]);
+        return entity;
     }
 }
