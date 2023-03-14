@@ -30,3 +30,46 @@ public static class Utils
         return result;
     }
 }
+
+public class Fraction
+{
+    private int numerator;
+    private int denominator;
+
+    public Fraction(int numerator, int denominator)
+    {
+        if (denominator == 0)
+        {
+            throw new ArgumentException("Denominator cannot be zero.", nameof(denominator));
+        }
+        this.numerator = numerator;
+        this.denominator = denominator;
+    }
+
+    //public static Fraction operator +(Fraction a) => a;
+    public static Fraction operator -(Fraction a) => new Fraction(-a.numerator, a.denominator);
+
+    public static Fraction operator +(Fraction a, Fraction b)
+        => new Fraction(a.numerator * b.denominator + b.numerator * a.denominator, a.denominator * b.denominator);
+
+    public static Fraction operator -(Fraction a, Fraction b)
+        => a + (-b);
+
+    public static Fraction operator *(Fraction a, Fraction b)
+        => new Fraction(a.numerator * b.numerator, a.denominator * b.denominator);
+
+    public static Fraction operator /(Fraction a, Fraction b)
+    {
+        if (b.numerator == 0)
+        {
+            throw new DivideByZeroException();
+        }
+        return new Fraction(a.numerator * b.denominator, a.denominator * b.numerator);
+    }
+
+    public float toFloat(){
+        return numerator / denominator;
+    }
+
+    public override string ToString() => $"{numerator} / {denominator}";
+}
