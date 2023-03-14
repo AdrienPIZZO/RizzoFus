@@ -41,14 +41,14 @@ public class MoveTarget : Effect
     }
 
     public override void apply(Chosen caster, Chosen target){
-        (int, int) vect = (target.currentX - caster.currentX, target.currentZ - caster.currentZ); // Save vect between caster and target somewhere nice
+        (int, int) vect = Utils.getVector(caster.currentX, target.currentX, caster.currentZ, target.currentZ); // Save vect between caster and target somewhere nice
         (int, int) orientation;
         if(Math.Abs(vect.Item1) > Math.Abs(vect.Item2)){
             orientation = (Math.Abs(vect.Item1)/vect.Item1, 0);
         } else if(Math.Abs(vect.Item1) < Math.Abs(vect.Item2)){
             orientation = (0, Math.Abs(vect.Item2)/vect.Item2);
         } else if(Math.Abs(vect.Item1) == Math.Abs(vect.Item2)){// Diagonal
-            orientation = (Math.Abs(vect.Item1)/vect.Item1, Math.Abs(vect.Item2)/vect.Item2); // better math function
+            orientation = (Math.Abs(vect.Item1)/vect.Item1, Math.Abs(vect.Item2)/vect.Item2); // TODO: better math function
         }
         else{
             orientation = (0, 0);

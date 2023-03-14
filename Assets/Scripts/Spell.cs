@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using static Effect;
+using System;
 
 public struct CastingCondition {
     public (int,int) range;
@@ -43,10 +44,79 @@ public class Spell
         for(int i=castingCondition.range.Item1; i<=castingCondition.range.Item2; i++){
             List<(int, int)> squarePos = Utils.getSquaresAtRange(i, position, board);
             for(int j=0; j<squarePos.Count; j++){
-                Debug.Log(squarePos[j]);
                 board.reachableSquares[squarePos[j].Item1, squarePos[j].Item2]=2;
-                board.squaresGO[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = board.materials[board.reachableSquares[squarePos[j].Item1, squarePos[j].Item2]];
+                board.squaresGO[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = board.materials[2];
+                if(castingCondition.LOS){
+                    if(!lineOfSight(board, position, squarePos[j])){
+                        board.squaresGO[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = board.materials[1];
+                    }
+                }
             }
         }
+    }
+    public bool lineOfSight(Board board, (int, int) a, (int, int) b){
+        bool los = true;
+        (int, int) vect = Utils.getVector(a.Item1, a.Item2, b.Item1, b.Item2);
+        if( vect.Item1 == 0 || vect.Item2 == 0){
+
+        } else {
+            Fraction coef = new Fraction(vect.Item2, vect.Item1);
+            Fraction intecept = a.Item2 - a.Item1*coef;
+            //Debug.Log(vect.Item1 + " : " + vect.Item2);
+            //Debug.Log("Pos a: (" + a.Item1 + "," + a.Item2 + ") Pos b: (" + b.Item1 + "," + b.Item2 + ") => Coef: " + coef.ToString() + " Intercept: " + intecept.ToString());
+            (int, int) orientation = (0,0);
+            (int, int) over = (0,0);
+            (int, int) under = (0,0);
+
+            if(vect.Item1 > 0 && vect.Item2 > 0){
+                orientation = (1, 1);
+                over = (0, 1);
+                under = (1, 0);
+            }else if(vect.Item1 > 0 && vect.Item2 < 0){
+                orientation = (1, -1);
+                over = (1, 0);
+                under = (0, -1);
+            }else if(vect.Item1 < 0 && vect.Item2 > 0){
+                orientation = (-1, 1);
+                over = (0, 1);
+                under = (-1, 0);
+            }else if(vect.Item1 < 0 && vect.Item2 < 0){
+                orientation = (-1, -1);
+                over = (-1, 0);
+                under = (0, -1);
+            }else{
+                Debug.Log("Error call LOS algorithm for diagonal trajectory on a line trajectory!");
+            }
+
+            Fraction offset = new Fraction( ((int) Math.Round(board.getSquareSize())), 2 ); // TODO: calculate this once and store atribute in class
+            (Fraction, Fraction) corner = (a.Item1 + (orientation.Item1 * offset), a.Item2 + (orientation.Item2 * offset));
+            (int, int) currentPos = (a.Item1, a.Item2);
+            Fraction z;
+            Debug.Log("Pos A: (" + a.Item1 + "," + a.Item2 + ")");
+            Debug.Log("Pos B: (" + b.Item1 + "," + b.Item2 + ")");
+            Debug.Log("coef = " + coef.ToString());
+            
+            while(Utils.range(currentPos.Item1, currentPos.Item2, b.Item1, b.Item2) > 1 && los){
+                z = (coef * corner.Item1) + intecept;
+                Debug.Log("corner = " + corner.ToString());
+                Debug.Log("Z = " + z.ToString());
+                Debug.Log("Zdouble = " + z.toDouble() + " et cornerZdouble = " + corner.Item2.toDouble());
+                if(z.toDouble() > corner.Item2.toDouble()){//Curve pass over the corner
+                    corner = (over.Item1 + corner.Item1, over.Item2 + corner.Item2);
+                    currentPos = (over.Item1 + currentPos.Item1, over.Item2 + currentPos.Item2);
+                }else if(z.toDouble() < corner.Item2.toDouble()){//Curve pass under the corner
+                    Debug.Log("ALO");
+                    corner = (under.Item1 + corner.Item1, under.Item2 + corner.Item2);
+                    currentPos = (under.Item1 + currentPos.Item1, under.Item2 + currentPos.Item2);
+                }else{ // corner = z
+                    Debug.Log("ALUILE");
+                    corner = (orientation.Item1 + corner.Item1, orientation.Item2 + corner.Item2);
+                    currentPos = (orientation.Item1 + currentPos.Item1, orientation.Item2 + currentPos.Item2);
+                }
+                Debug.Log("currentPos: (" + currentPos.Item1 + "," + currentPos.Item2 + ")");
+                if(!board.squares[currentPos.Item1, currentPos.Item2].isEmpty()) los = false;
+            }
+        }
+        return los;
     }
 }

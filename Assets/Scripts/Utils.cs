@@ -6,7 +6,11 @@ using System;
 public static class Utils
 {
     public static int range(int x, int z, int x2, int z2){
-        return Math.Abs(x2 - x) + Math.Abs(z2 - z);
+        (int, int) vect = getVector(x, z, x2, z2);
+        return Math.Abs(vect.Item1) + Math.Abs(vect.Item2);
+    }
+    public static (int, int) getVector(int x, int z, int x2, int z2){
+        return (x2 - x, z2 - z);
     }
 
     public static List<(int, int)> getSquaresAtRange(int range, (int, int) position, Board board){
@@ -54,9 +58,17 @@ public class Fraction
 
     public static Fraction operator -(Fraction a, Fraction b)
         => a + (-b);
+    public static Fraction operator +(int a, Fraction b)
+        =>  new Fraction(a, 1) + b;
+
+    public static Fraction operator -(int a, Fraction b)
+        => new Fraction(a, 1) - b;
 
     public static Fraction operator *(Fraction a, Fraction b)
         => new Fraction(a.numerator * b.numerator, a.denominator * b.denominator);
+
+    public static Fraction operator *(int a, Fraction b)
+        => new Fraction(a * b.numerator, b.denominator);
 
     public static Fraction operator /(Fraction a, Fraction b)
     {
@@ -67,8 +79,8 @@ public class Fraction
         return new Fraction(a.numerator * b.denominator, a.denominator * b.numerator);
     }
 
-    public float toFloat(){
-        return numerator / denominator;
+    public double toDouble(){
+        return (double) numerator / (double) denominator;
     }
 
     public override string ToString() => $"{numerator} / {denominator}";
