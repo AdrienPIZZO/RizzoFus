@@ -262,7 +262,6 @@ public class Game : MonoBehaviour
 
     public void updateSpellSelected(int id)
     {
-        
         spellSelected = spells[id];
         board.updateReachableSquare(spellSelected, (players[playerTurn].currentX, players[playerTurn].currentZ));
     }

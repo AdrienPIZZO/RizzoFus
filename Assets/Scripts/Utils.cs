@@ -20,7 +20,7 @@ public static class Utils
                 if(board.doesSquareExist(position.Item1 + i, position.Item2 + (range - i))) result.Add( (position.Item1 + i, position.Item2 + (range - i)) );
             }
             for(int i=0; i<range; i++){
-                if(board.doesSquareExist(position.Item2 + (range - i), position.Item2 - i)) result.Add( (position.Item1 + (range - i), position.Item2 - i) );
+                if(board.doesSquareExist(position.Item1 + (range - i), position.Item2 - i)) result.Add( (position.Item1 + (range - i), position.Item2 - i) );
             }
             for(int i=0; i<range; i++){
                 if(board.doesSquareExist(position.Item1 - i, position.Item2 - (range - i))) result.Add( (position.Item1 - i, position.Item2 - (range - i)) );
