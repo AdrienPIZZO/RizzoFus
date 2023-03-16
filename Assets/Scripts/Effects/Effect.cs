@@ -41,7 +41,7 @@ public class MoveTarget : Effect
     }
 
     public override void apply(Chosen caster, Chosen target){
-        (int, int) vect = Utils.getVector(caster.currentX, target.currentX, caster.currentZ, target.currentZ); // Save vect between caster and target somewhere nice
+        (int, int) vect = Utils.getVector(caster.currentX, caster.currentZ, target.currentX, target.currentZ); // Save vect between caster and target somewhere nice
         (int, int) orientation;
         if(Math.Abs(vect.Item1) > Math.Abs(vect.Item2)){
             orientation = (Math.Abs(vect.Item1)/vect.Item1, 0);
@@ -54,7 +54,8 @@ public class MoveTarget : Effect
             orientation = (0, 0);
             Debug.Log("Error orientation!");
         }
-
+        //Debug.Log("vect: (" + vect.Item1 + "," + vect.Item2 +")");
+        //Debug.Log("Orientation: (" + orientation.Item1 + "," + orientation.Item2 +")");
         int currentDistance = nbSquare;
         (int, int) currentPos = (target.currentX, target.currentZ);
         while (currentDistance > 0 && board.IsSquareAvailable(currentPos.Item1 + orientation.Item1, currentPos.Item2 + orientation.Item2)){

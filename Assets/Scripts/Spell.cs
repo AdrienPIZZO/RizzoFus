@@ -48,6 +48,7 @@ public class Spell
                 board.squaresGO[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = board.materials[2];
                 if(castingCondition.LOS){
                     if(!lineOfSight(board, position, squarePos[j])){
+                        board.reachableSquares[squarePos[j].Item1, squarePos[j].Item2]=1;
                         board.squaresGO[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = board.materials[1];
                     }
                 }
@@ -128,7 +129,7 @@ public class Spell
                     currentPos = (orientation.Item1 + currentPos.Item1, orientation.Item2 + currentPos.Item2);
                 }
                 //Debug.Log("currentPos: (" + currentPos.Item1 + "," + currentPos.Item2 + ")");
-                if(!board.squares[currentPos.Item1, currentPos.Item2].isEmpty()) los = false;
+                if(!board.squares[currentPos.Item1, currentPos.Item2].isEmpty() && Utils.range(currentPos.Item1, currentPos.Item2, b.Item1, b.Item2) !=0) los = false;
             }
         }
         return los;
