@@ -56,6 +56,7 @@ public class Board : MonoBehaviour
                 go.transform.SetParent(transform);
                 Square square = go.GetComponent<Square>();
                 squaresGO[x,z]= go;
+                squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[getIndexPrefabSquare(x,z)];
                 squares[x,z]= square;
                 square.init(this, x, z);
             }
@@ -67,7 +68,11 @@ public class Board : MonoBehaviour
         //Debug.Log("d");
     }
 
-//Verification of all castingCondition of the spell to diplay the targetables squares
+    private int getIndexPrefabSquare(int x, int z){
+        return ((x + z) % 2) == 0 ? 3 : 4; 
+    }
+
+    //Verification of all castingCondition of the spell to diplay the targetables squares
     public void updateReachableSquare(Spell s, (int, int) position){
         resetReachableSquares();
         isASpellSelected = true;
@@ -79,7 +84,7 @@ public class Board : MonoBehaviour
         for(int x = 0; x < reachableSquares.GetLength(0); x++){
             for(int z = 0; z < reachableSquares.GetLength(1); z++){
                 reachableSquares[x,z]=0;
-                squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[0];
+                squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[getIndexPrefabSquare(x, z)];
             }
         }
     }
