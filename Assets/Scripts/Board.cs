@@ -30,6 +30,7 @@ public class Board : MonoBehaviour
         for(int x = 0; x < GetSquares().GetLength(0); x++){
             for(int z = 0; z < GetSquares().GetLength(1); z++){
                 if(!squares[x, z].isEmpty()){
+                    //TODO Polymorphism with method from entity such that each subclass of entity modify transform position Y of their prefab
                     squares[x, z].getEntity().transform.position = GetSquareCenter(squares[x, z]) + Vector3.up * prefabs[2].GetComponent<Renderer>().bounds.size.y / 2 + offset;
                 }
             }
