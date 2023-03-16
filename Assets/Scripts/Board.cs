@@ -25,7 +25,7 @@ public class Board : MonoBehaviour
 
     }
 
-    public void DrawChosen(){
+    public void DrawChosens(){
         //TODO: Do better for redraw board model
         for(int x = 0; x < GetSquares().GetLength(0); x++){
             for(int z = 0; z < GetSquares().GetLength(1); z++){

@@ -75,7 +75,7 @@ public class Game : MonoBehaviour
     {
         UpdateSelection();
         DrawGrid();
-        board.DrawChosen();
+        board.DrawChosens();
 
         // onClick use spell or move chosen
         if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionZ != -1))
