@@ -17,16 +17,18 @@ public class Game : MonoBehaviour
     private List<Node> leaves = new List<Node>();
     public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
     Vector3 offset; 
-
     public Square lastSquareSelected = null;
 
     private void Start()
     {
         offset = transform.position;
         //board = new Board(1.0f, 0.5f, 16, offset);
-
+        //Debug.Log();
+        GameObject go = Instantiate(prefabs[0], transform.position, Quaternion.identity) as GameObject;
+        go.transform.SetParent(transform);
+        board = go.GetComponent<Board>();
         board.init(1.0f, 0.5f, 16, offset);
-        SpawnAllChosen();
+        players = board.SpawnAllChosen();
 
         int id = 0;
         //create all spells in the game
@@ -65,18 +67,15 @@ public class Game : MonoBehaviour
         players[1].addSpell(new KeyValuePair<int, Spell> (4, spells[4]));
         players[1].addSpell(new KeyValuePair<int, Spell> (5, spells[5]));
 
-        SpawnAllObstacles();
-
         hm = Canvas.GetComponent<HUDManager>();
         hm.initHUD();
-
-
     }
 
     private void Update()
     {
         UpdateSelection();
-        DrawBoard();
+        DrawGrid();
+        board.DrawChosen();
 
         // onClick use spell or move chosen
         if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionZ != -1))
@@ -99,7 +98,7 @@ public class Game : MonoBehaviour
             board.resetReachableSquares();
         }
     }
-    private void DrawBoard(){
+    private void DrawGrid(){ //TODO: Do better for redraw board model
         Vector3 widthLine = Vector3.right * board.getSquareSize() * board.getNbSquares();
         Vector3 heigthLine = Vector3.forward * board.getSquareSize() * board.getNbSquares();
         
@@ -117,15 +116,6 @@ public class Game : MonoBehaviour
         {
             Debug.DrawLine(Vector3.forward * selectionZ + Vector3.right * selectionX + offset,
             Vector3.forward * (selectionZ + 1) + Vector3.right * (selectionX + 1) + offset);
-        }
-
-        //TODO: Do better for redraw board model
-        for(int x = 0; x < board.GetSquares().GetLength(0); x++){
-            for(int z = 0; z < board.GetSquares().GetLength(1); z++){
-                if(!board.squares[x, z].isEmpty()){
-                    board.squares[x, z].getEntity().transform.position = board.GetSquareCenter(board.squares[x, z]) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2 + offset;
-                }
-            }
         }
     }
 
@@ -207,46 +197,6 @@ public class Game : MonoBehaviour
             selectionX = -1;
             selectionZ = -1;
         }
-    }
- 
-    private void SpawnChosen(int indexPrefab, int x, int z)
-    {
-        GameObject go = Instantiate(prefabs[indexPrefab], board.GetSquareCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2 + offset,
-        Quaternion.identity) as GameObject;
-        go.transform.SetParent(transform);
-        Chosen chosen = go.GetComponent<Chosen>();
-        chosen.setBoard(board);
-        board.setEntityAtPos(x, z, chosen);
-        chosen.SetPosition(x, z);
-        players.Add(chosen);
-    }
-
-    private void SpawnObstacle(int indexPrefab, int x, int z)
-    {
-        GameObject go = Instantiate(prefabs[indexPrefab], board.GetSquareCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2 + offset,
-        Quaternion.identity) as GameObject;
-        go.transform.SetParent(transform);
-        Obstacles obstacle = go.GetComponent<Obstacles>();
-        obstacle.setBoard(board);
-        board.setEntityAtPos(x, z, obstacle);
-        obstacle.SetPosition(x, z);
-    }
-
-    private void SpawnAllChosen()
-    {
-        players = new List<Chosen>();
-        SpawnChosen(0, 0, 0);
-        SpawnChosen(0, 7, 7);
-    }
-
-    private void SpawnAllObstacles()
-    {
-        SpawnObstacle(1, 2, 2);
-        SpawnObstacle(1, 3, 0);
-        SpawnObstacle(1, 2, 0);
-        SpawnObstacle(1, 1, 0);
-        SpawnObstacle(1, 2, 1);
-        SpawnObstacle(1, 5, 5);
     }
 
     public void EndTurn()

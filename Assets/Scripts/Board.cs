@@ -25,26 +25,46 @@ public class Board : MonoBehaviour
 
     }
 
+    public void DrawChosen(){
+        //TODO: Do better for redraw board model
+        for(int x = 0; x < GetSquares().GetLength(0); x++){
+            for(int z = 0; z < GetSquares().GetLength(1); z++){
+                if(!squares[x, z].isEmpty()){
+                    squares[x, z].getEntity().transform.position = GetSquareCenter(squares[x, z]) + Vector3.up * prefabs[2].GetComponent<Renderer>().bounds.size.y / 2 + offset;
+                }
+            }
+        }
+    }
+
     public void init(float SquareSize, float SquareOffset, int nbSquares, Vector3 offset){
         this.SquareSize = SquareSize;
         this.SquareOffset = SquareOffset;
         this.nbSquares = nbSquares;
         this.offset=offset;
+        //Debug.Log("a");
+        GameObject planeGO = Instantiate(prefabs[1], transform.position + new Vector3(getNbSquares()*getSquareSize()/2, 0, getNbSquares()*getSquareSize()/2),
+        Quaternion.identity) as GameObject;//Plane GO
+        //Debug.Log("b");
+        planeGO.transform.SetParent(transform);
+        planeGO.transform.localScale = new Vector3(nbSquares * prefabs[0].transform.localScale.x, 1, nbSquares * prefabs[0].transform.localScale.z);
         squares =  new Square[nbSquares, nbSquares];
         squaresGO =  new GameObject[nbSquares, nbSquares];
         reachableSquares =  new int[nbSquares, nbSquares];
         for(int x=0; x<nbSquares; x++){
             for (int z=0; z<nbSquares; z++){
-                GameObject go = Instantiate(prefabs[0],
-                GetSquareCenter(x, z) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2 + offset, Quaternion.identity) as GameObject;
+                GameObject go = Instantiate(prefabs[0], transform.position + GetSquareCenter(x, z), Quaternion.identity) as GameObject;
                 go.transform.SetParent(transform);
                 Square square = go.GetComponent<Square>();
                 squaresGO[x,z]= go;
                 squares[x,z]= square;
                 square.init(this, x, z);
-                //go.transform.position = GetSquareCenter(squares[x, z]) + Vector3.up * prefabs[0].GetComponent<Renderer>().bounds.size.y / 2 + offset;
             }
         }
+        //Debug.Log("c");
+        //SpawnAllChosen();
+        //Debug.Log("zzz");
+        SpawnAllObstacles();
+        //Debug.Log("d");
     }
 
 //Verification of all castingCondition of the spell to diplay the targetables squares
@@ -99,6 +119,49 @@ public class Board : MonoBehaviour
     }
     public Square[,] GetSquares(){
         return squares;
+    }
+
+    private Chosen SpawnChosen(int indexPrefab, int x, int z)
+    {
+        GameObject go = Instantiate(prefabs[indexPrefab], transform.position + GetSquareCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2,
+        Quaternion.identity) as GameObject;
+        go.transform.SetParent(transform);
+        Chosen chosen = go.GetComponent<Chosen>();
+        chosen.setBoard(this);
+        setEntityAtPos(x, z, chosen);
+        chosen.SetPosition(x, z);
+        return chosen;
+    }
+
+    private void SpawnObstacle(int indexPrefab, int x, int z)
+    {
+        GameObject go = Instantiate(prefabs[indexPrefab], transform.position + GetSquareCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2,
+        Quaternion.identity) as GameObject;
+        go.transform.SetParent(transform);
+        Obstacles obstacle = go.GetComponent<Obstacles>();
+        obstacle.setBoard(this);
+        setEntityAtPos(x, z, obstacle);
+        obstacle.SetPosition(x, z);
+    }
+
+    public List<Chosen> SpawnAllChosen()
+    {
+        List<Chosen> players = new List<Chosen>();
+        players.Add(SpawnChosen(2, 7, 7));
+        players.Add(SpawnChosen(2, 0, 0));
+        //Debug.Log("j1:" + players[0].ToString());
+        //Debug.Log("j2: " + players[1].ToString());
+        return players;
+    }
+
+    private void SpawnAllObstacles()
+    {
+        SpawnObstacle(3, 2, 2);
+        SpawnObstacle(3, 3, 0);
+        SpawnObstacle(3, 2, 0);
+        SpawnObstacle(3, 1, 0);
+        SpawnObstacle(3, 2, 1);
+        SpawnObstacle(3, 5, 5);
     }
     
     public Node PathFinding(Node current, int x, int z, int nbMP, List<Node> leaves){

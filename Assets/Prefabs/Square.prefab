@@ -91,7 +91,7 @@ MonoBehaviour:
   board: {fileID: 0}
   x: 0
   z: 0
-  occupant: {fileID: 0}
+  entity: {fileID: 0}
 --- !u!33 &8556857719198068392
 MeshFilter:
   m_ObjectHideFlags: 0
