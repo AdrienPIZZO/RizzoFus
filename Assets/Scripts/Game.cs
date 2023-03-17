@@ -205,9 +205,9 @@ public class Game : MonoBehaviour
         spellSelected = null;
         board.resetReachableSquares();
         playerTurn = (playerTurn + 1) % players.Count;
+        players[playerTurn].beginTurn();
         hm.updateHUD();
         hm.updateHUDInfo();
-        players[playerTurn].beginTurn();
     }
 
     public void updateSpellSelected(int id)
