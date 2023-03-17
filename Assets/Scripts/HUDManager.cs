@@ -6,7 +6,7 @@ using TMPro;
 
 public class HUDManager : MonoBehaviour
 {
-    public GameObject Game;
+    public GameObject gameGO;
     private Game game;
     public List<GameObject> prefabs;
 
@@ -24,6 +24,20 @@ public class HUDManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
+
+    public void initHUD(Game game){
+
+        Debug.Log(game.players[0]);
+        Debug.Log(game.players[1]);
+
         hpBar = Instantiate(prefabs[1], new Vector3(100, 750, 0), Quaternion.identity) as GameObject;
         hpBar.transform.SetParent(transform);
         tm = hpBar.GetComponentInChildren<TextMeshProUGUI>();
@@ -39,16 +53,8 @@ public class HUDManager : MonoBehaviour
         powerGaugeBar.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 300);
         tm = powerGaugeBar.GetComponentInChildren<TextMeshProUGUI>();
         tm.text = game.players[game.playerTurn].powerGauge.ToString() + " POWER";
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
-    public void initHUD(){
-        game = Game.GetComponent<Game>();
+        game = gameGO.GetComponent<Game>();
 
         go = Instantiate(prefabs[0], new Vector3(1400, 25, 0), Quaternion.identity) as GameObject;
             go.transform.SetParent(transform);

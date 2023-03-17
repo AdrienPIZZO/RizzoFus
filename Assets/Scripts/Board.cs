@@ -155,8 +155,6 @@ public class Board : MonoBehaviour
         List<Chosen> players = new List<Chosen>();
         players.Add(SpawnChosen(2, 7, 7));
         players.Add(SpawnChosen(2, 0, 0));
-        //Debug.Log("j1:" + players[0].ToString());
-        //Debug.Log("j2: " + players[1].ToString());
         return players;
     }
 

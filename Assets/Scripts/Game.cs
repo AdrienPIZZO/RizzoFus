@@ -1,8 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class Game : MonoBehaviour
+public class Game : NetworkBehaviour
 {
     private int selectionX = -1;
     private int selectionZ = -1;
@@ -21,83 +22,91 @@ public class Game : MonoBehaviour
 
     private void Start()
     {
-        offset = transform.position;
-        //board = new Board(1.0f, 0.5f, 16, offset);
-        //Debug.Log();
-        GameObject go = Instantiate(prefabs[0], transform.position, Quaternion.identity) as GameObject;
-        go.transform.SetParent(transform);
-        board = go.GetComponent<Board>();
-        board.init(1.0f, 0.5f, 16, offset);
-        players = board.SpawnAllChosen();
-
-        int id = 0;
-        //create all spells in the game
-        Spell electricBlade = new Spell("Electric blade", 20, new CastingCondition((1,1), true, true));
-        electricBlade.effects.Add(new PhysicalDamage(board, 5));
-        spells.Add(id++, electricBlade);
-
-        Spell fireBall = new Spell("Fire ball", 30, new CastingCondition((2,6), false, true));
-        fireBall.effects.Add(new PhysicalDamage(board, 20));
-        spells.Add(id++, fireBall);
-
-        Spell frozenGasp = new Spell("Frozen Gasp", 30, new CastingCondition((1,4), false, true));
-        frozenGasp.effects.Add(new PhysicalDamage(board, 20));
-        frozenGasp.effects.Add(new MPbuff(2, false, -1));
-        spells.Add(id++, frozenGasp);
-
-        Spell shuriken = new Spell("Shuriken", 30, new CastingCondition((1,8), true, true));
-        shuriken.effects.Add(new PhysicalDamage(board, 10));
-        spells.Add(id++, shuriken);
-
-        Spell celerity = new Spell("Celerity", 10, new CastingCondition((0,0), true, true));
-        celerity.effects.Add(new MPbuff(1, true, 3));
-        spells.Add(id++, celerity);
-
-        Spell jadePalm = new Spell("Jade palm", 40, new CastingCondition((1,3), true, true));
-        jadePalm.effects.Add(new PhysicalDamage(board, 5));
-        jadePalm.effects.Add(new MoveTarget(board, 2));
-        spells.Add(id++, jadePalm);
-
-        //Affect spell to chosen
-        players[0].addSpell(new KeyValuePair<int, Spell> (0, spells[0]));
-        players[0].addSpell(new KeyValuePair<int, Spell> (1, spells[1]));
-        players[0].addSpell(new KeyValuePair<int, Spell> (2, spells[2]));
-
-        players[1].addSpell(new KeyValuePair<int, Spell> (3, spells[3]));
-        players[1].addSpell(new KeyValuePair<int, Spell> (4, spells[4]));
-        players[1].addSpell(new KeyValuePair<int, Spell> (5, spells[5]));
-
-        hm = Canvas.GetComponent<HUDManager>();
-        hm.initHUD();
+        
     }
 
     private void Update()
     {
-        UpdateSelection();
-        DrawGrid();
-        board.DrawChosens();
+        if(IsHost || IsServer){
+            UpdateSelection();
+            DrawGrid();
+            board.DrawChosens();
 
-        // onClick use spell or move chosen
-        if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionZ != -1))
-        {
-            lastSquareSelected = board.squares[selectionX, selectionZ];
-            if (spellSelected!=null)
+            // onClick use spell or move chosen
+            if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionZ != -1))
             {
-                Debug.Log(spellSelected.getName());
-                if(board.reachableSquares[selectionX, selectionZ]==2){
-                    players[playerTurn].useSpell(lastSquareSelected, spellSelected);
-                    hm.updateHUDInfo();
-                } else{
-                    Debug.Log("Target out of reach!");
+                lastSquareSelected = board.squares[selectionX, selectionZ];
+                if (spellSelected!=null)
+                {
+                    Debug.Log(spellSelected.getName());
+                    if(board.reachableSquares[selectionX, selectionZ]==2){
+                        players[playerTurn].useSpell(lastSquareSelected, spellSelected);
+                        hm.updateHUDInfo();
+                    } else{
+                        Debug.Log("Target out of reach!");
+                    }
+                } else if (board.IsSquareAvailable(selectionX, selectionZ)){
+                    ChosenMove(selectionX, selectionZ);
+                    hm.updateHUDMP();
                 }
-            } else if (board.IsSquareAvailable(selectionX, selectionZ)){
-                ChosenMove(selectionX, selectionZ);
-                hm.updateHUDMP();
+                spellSelected=null; //Unselect spell on click
+                board.resetReachableSquares();
             }
-            spellSelected=null; //Unselect spell on click
-            board.resetReachableSquares();
         }
     }
+
+    public void init(){
+        offset = transform.position;
+        Debug.Log("host: " + IsHost);
+        if(IsHost || IsServer){
+            GameObject go = Instantiate(prefabs[0], transform.position, Quaternion.identity) as GameObject;
+            go.transform.SetParent(transform);
+            board = go.GetComponent<Board>();
+            board.init(1.0f, 0.5f, 16, offset);
+            players = board.SpawnAllChosen();
+
+            int id = 0;
+            //create all spells in the game
+            Spell electricBlade = new Spell("Electric blade", 20, new CastingCondition((1,1), true, true));
+            electricBlade.effects.Add(new PhysicalDamage(board, 5));
+            spells.Add(id++, electricBlade);
+
+            Spell fireBall = new Spell("Fire ball", 30, new CastingCondition((2,6), false, true));
+            fireBall.effects.Add(new PhysicalDamage(board, 20));
+            spells.Add(id++, fireBall);
+
+            Spell frozenGasp = new Spell("Frozen Gasp", 30, new CastingCondition((1,4), false, true));
+            frozenGasp.effects.Add(new PhysicalDamage(board, 20));
+            frozenGasp.effects.Add(new MPbuff(2, false, -1));
+            spells.Add(id++, frozenGasp);
+
+            Spell shuriken = new Spell("Shuriken", 30, new CastingCondition((1,8), true, true));
+            shuriken.effects.Add(new PhysicalDamage(board, 10));
+            spells.Add(id++, shuriken);
+
+            Spell celerity = new Spell("Celerity", 10, new CastingCondition((0,0), true, true));
+            celerity.effects.Add(new MPbuff(1, true, 3));
+            spells.Add(id++, celerity);
+
+            Spell jadePalm = new Spell("Jade palm", 40, new CastingCondition((1,3), true, true));
+            jadePalm.effects.Add(new PhysicalDamage(board, 5));
+            jadePalm.effects.Add(new MoveTarget(board, 2));
+            spells.Add(id++, jadePalm);
+
+            //Affect spell to chosen
+            players[0].addSpell(new KeyValuePair<int, Spell> (0, spells[0]));
+            players[0].addSpell(new KeyValuePair<int, Spell> (1, spells[1]));
+            players[0].addSpell(new KeyValuePair<int, Spell> (2, spells[2]));
+
+            players[1].addSpell(new KeyValuePair<int, Spell> (3, spells[3]));
+            players[1].addSpell(new KeyValuePair<int, Spell> (4, spells[4]));
+            players[1].addSpell(new KeyValuePair<int, Spell> (5, spells[5]));
+
+            hm = Canvas.GetComponent<HUDManager>();
+            hm.initHUD(this);
+        }
+    }
+
     private void DrawGrid(){ //TODO: Do better for redraw board model
         Vector3 widthLine = Vector3.right * board.getSquareSize() * board.getNbSquares();
         Vector3 heigthLine = Vector3.forward * board.getSquareSize() * board.getNbSquares();
