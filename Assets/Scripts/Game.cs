@@ -22,7 +22,7 @@ public class Game : NetworkBehaviour
 
     private void Start()
     {
-        
+
     }
 
     private void Update()
@@ -55,10 +55,12 @@ public class Game : NetworkBehaviour
         }
     }
 
-    public void init(){
+    public void init(HUDManager hm)
+    {
+        this.hm = hm;
         offset = transform.position;
         Debug.Log("host: " + IsHost);
-        if(IsHost || IsServer){
+        if(NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer){
             GameObject go = Instantiate(prefabs[0], transform.position, Quaternion.identity) as GameObject;
             go.transform.SetParent(transform);
             board = go.GetComponent<Board>();
@@ -102,7 +104,7 @@ public class Game : NetworkBehaviour
             players[1].addSpell(new KeyValuePair<int, Spell> (4, spells[4]));
             players[1].addSpell(new KeyValuePair<int, Spell> (5, spells[5]));
 
-            hm = Canvas.GetComponent<HUDManager>();
+            //hm = Canvas.GetComponent<HUDManager>();
             hm.initHUD(this);
         }
     }

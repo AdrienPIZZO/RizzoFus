@@ -1081,25 +1081,7 @@ MonoBehaviour:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 619321329}
     PlayerPrefab: {fileID: 0}
-    NetworkPrefabs:
-    - Override: 0
-      Prefab: {fileID: 8603110822457391600, guid: dbacf0af53f767746aa1c967f60c8b8d,
-        type: 3}
-      SourcePrefabToOverride: {fileID: 0}
-      SourceHashToOverride: 0
-      OverridingTargetPrefab: {fileID: 0}
-    - Override: 0
-      Prefab: {fileID: 8878898753496235591, guid: 41420cfea13dc3c408828c763deba61f,
-        type: 3}
-      SourcePrefabToOverride: {fileID: 0}
-      SourceHashToOverride: 0
-      OverridingTargetPrefab: {fileID: 0}
-    - Override: 0
-      Prefab: {fileID: 390296313428708572, guid: 0e1b0c221e5961f4f964826844db428b,
-        type: 3}
-      SourcePrefabToOverride: {fileID: 0}
-      SourceHashToOverride: 0
-      OverridingTargetPrefab: {fileID: 0}
+    NetworkPrefabs: []
     TickRate: 30
     ClientConnectionBufferTimeout: 10
     ConnectionApproval: 0
@@ -1128,77 +1110,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &701622741
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 701622743}
-  - component: {fileID: 701622742}
-  - component: {fileID: 701622744}
-  m_Layer: 0
-  m_Name: Game
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &701622742
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 701622741}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5790f6dcd13473a48bd4322bd7635144, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  playerTurn: 0
-  Canvas: {fileID: 756857066}
-  hm: {fileID: 756857071}
-  prefabs:
-  - {fileID: 8878898753496235591, guid: 1235443696342f141bb4694b49775d1e, type: 3}
-  players: []
-  board: {fileID: 0}
-  lastSquareSelected: {fileID: 0}
---- !u!4 &701622743
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 701622741}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 3, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &701622744
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 701622741}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 2777618076
-  AlwaysReplicateAsRoot: 0
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
 --- !u!1 &756857066
 GameObject:
   m_ObjectHideFlags: 0
@@ -1313,7 +1226,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9e310e5339c3f6a42bbeedac8f722ecd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameGO: {fileID: 701622741}
   prefabs:
   - {fileID: 7519216397431062187, guid: 8212ae5bd5659f64fbbf868b2adad8ce, type: 3}
   - {fileID: 8232954802755693527, guid: bfbf1cef260a9a34582d1a40d6bc1bb1, type: 3}
@@ -1680,4 +1592,5 @@ MonoBehaviour:
   serverBtn: {fileID: 183144274}
   hostBtn: {fileID: 486470108}
   clientBtn: {fileID: 1197287139}
-  gameGO: {fileID: 701622741}
+  gamePrefab: {fileID: 4348472445893081111, guid: 91bf69eda5215de4cb17e7264e3caa89,
+    type: 3}
