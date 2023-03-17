@@ -21,7 +21,9 @@ public class Buff : Effect //Effect apply instant on use
     {
         this.caster = caster;
         this.target = target;
-        target.buffs.Add(this);
+        //TODO Don't pass copy of the object instead make list buffs couple (counter, Buff) so each chosen hadle their own buffs cd (counter)
+        target.buffs.Add((Buff) this.MemberwiseClone());
+        Debug.Log("buff added");
         if(instant){
             applyBuff();
         }
@@ -34,6 +36,7 @@ public class Buff : Effect //Effect apply instant on use
 
     public virtual void applyBuff(){
         nbTurnRemaining--;
+        Debug.Log("poly ??");
     }
 }
 public class MPbuff : Buff
@@ -47,5 +50,6 @@ public class MPbuff : Buff
     public override void applyBuff(){
         base.applyBuff();
         target.MP += amount;
+        Debug.Log("-1");
     }
 }

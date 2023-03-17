@@ -31,10 +31,11 @@ public class Chosen : Entity
     public void beginTurn(){
         foreach(Buff b in buffs.ToList()){
             if (b.nbTurnRemaining <= 0){
-                Debug.Log("NOPE");
                 buffs.Remove(b);
             } else {
+                Debug.Log(MP);
                 b.applyBuff();
+                Debug.Log(MP);
             }
         }
     }
