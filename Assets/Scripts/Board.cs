@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class Board : MonoBehaviour
+public class Board : NetworkBehaviour
 {
     private float SquareSize /*= 1.0f*/;
     private float SquareOffset /*= 0.5f*/;
@@ -14,7 +15,18 @@ public class Board : MonoBehaviour
     public bool isASpellSelected = false;
     public List<GameObject> prefabs;
     public List<Material> materials;
-    Vector3 offset;
+    //Vector3 offset;
+    public NetworkVariable<int> nbPlayers = new NetworkVariable<int>(0);
+    public NetworkVariable<int> nbObstacles = new NetworkVariable<int>(0);
+    public NetworkVariable<int> nbSquaresNetwork = new NetworkVariable<int>(0);
+
+    public static Board Instance;
+
+    private void Awake()
+    {
+        Instance = this;
+        Debug.Log("Awake of Board");
+    }
 
     private void Start()
     {
@@ -25,27 +37,28 @@ public class Board : MonoBehaviour
 
     }
 
+    
+
     public void DrawChosens(){
         //TODO: Do better for redraw board model
         for(int x = 0; x < GetSquares().GetLength(0); x++){
             for(int z = 0; z < GetSquares().GetLength(1); z++){
                 if(!squares[x, z].isEmpty()){
                     //TODO Polymorphism with method from entity such that each subclass of entity modify transform position Y of their prefab
-                    squares[x, z].getEntity().transform.position = GetSquareCenter(squares[x, z]) + Vector3.up * prefabs[2].GetComponent<Renderer>().bounds.size.y / 2 + offset;
+                    squares[x, z].getEntity().transform.position = GetSquareCenter(squares[x, z]) + Vector3.up * prefabs[2].GetComponent<Renderer>().bounds.size.y / 2 + transform.position;
                 }
             }
         }
     }
 
-    public void init(float SquareSize, float SquareOffset, int nbSquares, Vector3 offset){
+    public void init(float SquareSize, float SquareOffset, int nbSquares){
         this.SquareSize = SquareSize;
         this.SquareOffset = SquareOffset;
         this.nbSquares = nbSquares;
-        this.offset=offset;
-        //Debug.Log("a");
+        //Vector3 offset = transform.position;
         GameObject planeGO = Instantiate(prefabs[1], transform.position + new Vector3(getNbSquares()*getSquareSize()/2, 0, getNbSquares()*getSquareSize()/2),
         Quaternion.identity) as GameObject;//Plane GO
-        //Debug.Log("b");
+        planeGO.GetComponent<NetworkObject>().Spawn();
         planeGO.transform.SetParent(transform);
         planeGO.transform.localScale = new Vector3(nbSquares * prefabs[0].transform.localScale.x, 1, nbSquares * prefabs[0].transform.localScale.z);
         squares =  new Square[nbSquares, nbSquares];
@@ -60,13 +73,11 @@ public class Board : MonoBehaviour
                 squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[getIndexPrefabSquare(x,z)];
                 squares[x,z]= square;
                 square.init(this, x, z);
+                go.GetComponent<NetworkObject>().Spawn();
             }
         }
-        //Debug.Log("c");
-        //SpawnAllChosen();
-        //Debug.Log("zzz");
+        nbSquaresNetwork.Value=nbSquares;
         SpawnAllObstacles();
-        //Debug.Log("d");
     }
 
     private int getIndexPrefabSquare(int x, int z){
@@ -109,8 +120,8 @@ public class Board : MonoBehaviour
     }
     public Vector3 GetSquareCenter(Square square){
         Vector3 origin = Vector3.zero;
-        origin.x += (SquareSize * square.x) + SquareOffset;
-        origin.z += (SquareSize * square.z) + SquareOffset;
+        origin.x += (SquareSize * square.x.Value) + SquareOffset;
+        origin.z += (SquareSize * square.z.Value) + SquareOffset;
         return origin;
     }
     public bool IsSquareAvailable(int x, int z){
@@ -121,6 +132,7 @@ public class Board : MonoBehaviour
         return flag;
     }
     public void setEntityAtPos(int x, int z, Entity e){
+        Debug.Log("setEntityAtPos: (" + x + ";" + z + ")");
         this.squares[x, z].entity = e;
     }
     public Square[,] GetSquares(){
@@ -129,25 +141,31 @@ public class Board : MonoBehaviour
 
     private Chosen SpawnChosen(int indexPrefab, int x, int z)
     {
+        //Vector3 offset = transform.position;
         GameObject go = Instantiate(prefabs[indexPrefab], transform.position + GetSquareCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2,
         Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
         Chosen chosen = go.GetComponent<Chosen>();
-        chosen.setBoard(this);
         setEntityAtPos(x, z, chosen);
-        chosen.SetPosition(x, z);
+        chosen.setBoard(this);
+        chosen.initPos(x, z);
+        go.GetComponent<NetworkObject>().Spawn();
         return chosen;
     }
 
     private void SpawnObstacle(int indexPrefab, int x, int z)
     {
+        //Vector3 offset = transform.position;
         GameObject go = Instantiate(prefabs[indexPrefab], transform.position + GetSquareCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2,
         Quaternion.identity) as GameObject;
         go.transform.SetParent(transform);
-        Obstacles obstacle = go.GetComponent<Obstacles>();
-        obstacle.setBoard(this);
+        Obstacle obstacle = go.GetComponent<Obstacle>();
+        Debug.Log("board: " + this==null);
+        Debug.Log("obstacle: " + obstacle==null);
         setEntityAtPos(x, z, obstacle);
-        obstacle.SetPosition(x, z);
+        obstacle.setBoard(this);
+        obstacle.initPos(x, z);
+        go.GetComponent<NetworkObject>().Spawn();
     }
 
     public List<Chosen> SpawnAllChosen()
@@ -155,6 +173,7 @@ public class Board : MonoBehaviour
         List<Chosen> players = new List<Chosen>();
         players.Add(SpawnChosen(2, 7, 7));
         players.Add(SpawnChosen(2, 0, 0));
+        nbPlayers.Value=2;
         return players;
     }
 
@@ -166,6 +185,7 @@ public class Board : MonoBehaviour
         SpawnObstacle(3, 1, 0);
         SpawnObstacle(3, 2, 1);
         SpawnObstacle(3, 5, 5);
+        nbObstacles.Value=6;
     }
     
     public Node PathFinding(Node current, int x, int z, int nbMP, List<Node> leaves){

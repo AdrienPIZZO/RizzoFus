@@ -1,22 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Netcode;
 
-public class Entity : MonoBehaviour
+public class Entity : NetworkBehaviour
 {
     public Board board;
-    public int currentX { set; get; }
-    public int currentZ { set; get; }
+    public NetworkVariable<int> x = new NetworkVariable<int>(-1);
+    public NetworkVariable<int> z = new NetworkVariable<int>(-1);
 
-    public void SetPosition(int x, int z)
+    public void initPos(int x, int z){
+        this.x.Value = x;
+        this.z.Value = z;
+    }
+    public void ModifyExistingPosition(int newX, int newZ)
     {
-        board.setEntityAtPos(currentX, currentZ, null);
-        currentX = x;
-        currentZ = z;
-        board.setEntityAtPos(currentX, currentZ, this);
+        board.setEntityAtPos(this.x.Value, z.Value, null);
+        x.Value = newX;
+        z.Value = newZ;
+        board.setEntityAtPos(x.Value, z.Value, this);
     }
 
     public void setBoard(Board board){
+        Debug.Log("board: " + board==null);
+        Debug.Log("obstacle: " + this==null);
         this.board = board;
     }
 

@@ -21,6 +21,14 @@ public class Chosen : Entity
     public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
 
     public List<Buff> buffs = new List<Buff>();
+
+    public static List<Chosen> Instances = new List<Chosen>();
+
+    private void Awake()
+    {
+        Instances.Add(this);
+        Debug.Log("Awake of Chosen");
+    }
     public void addSpell(KeyValuePair<int, Spell> s){
         if(spells == null){
             Debug.Log("s");

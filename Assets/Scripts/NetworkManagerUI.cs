@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
+using System.IO;
+using UnityEngine.Networking;
+using System;
 
 public class NetworkManagerUI : MonoBehaviour
 {
@@ -10,21 +13,22 @@ public class NetworkManagerUI : MonoBehaviour
     [SerializeField] private Button hostBtn;
     [SerializeField] private Button clientBtn;
     [SerializeField] private GameObject gamePrefab;
+    [SerializeField] private List<GameObject> NetworkTypes;
     // Start is called before the first frame update
 
-    private void Awake(){
+    private void Awake(){             
         serverBtn.onClick.AddListener(() => {
             NetworkManager.Singleton.StartServer();
-            GameObject gameGO = Instantiate(gamePrefab) as GameObject;
-            gameGO.GetComponent<Game>().init(this.GetComponentInParent<HUDManager>());
+            Instantiate(NetworkTypes[0]);
         });
         hostBtn.onClick.AddListener(() => {
             NetworkManager.Singleton.StartHost();
-            GameObject gameGO = Instantiate(gamePrefab) as GameObject;
-            gameGO.GetComponent<Game>().init(this.GetComponentInParent<HUDManager>());
+            Instantiate(NetworkTypes[1]);
+
         });
         clientBtn.onClick.AddListener(() => {
             NetworkManager.Singleton.StartClient();
+            Instantiate(NetworkTypes[2]);
         });
     }
 }

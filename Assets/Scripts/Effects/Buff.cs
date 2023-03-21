@@ -29,7 +29,7 @@ public class Buff : Effect //Effect apply instant on use
         }
     }
 
-    public override void apply(Chosen caster, Obstacles target)
+    public override void apply(Chosen caster, Obstacle target)
     {
         throw new System.NotImplementedException();
     }

@@ -2,23 +2,40 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
+using UnityEngine.Networking;
+using System.Threading;
 
 public class Game : NetworkBehaviour
 {
+    //to be in client controler
     private int selectionX = -1;
     private int selectionZ = -1;
-    public int playerTurn = 0;
     public Spell spellSelected = null;
     public GameObject Canvas;
     public HUDManager hm;
+    public Square lastSquareSelected = null;
+
+    //To be in server controler
     public List<GameObject> prefabs;
-    public List<Chosen> players;
-    public Board board; 
+
+    //Dans les 2
+    //public int playerTurn = 0;
+    public NetworkVariable<int> IDplayerTurn = new NetworkVariable<int>(-1);
+    public List<Chosen> players = new List<Chosen>();
+
     private Node root;
     private List<Node> leaves = new List<Node>();
+    public Board board; 
     public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
-    Vector3 offset; 
-    public Square lastSquareSelected = null;
+    
+
+    public static Game Instance = null;
+
+    private void Awake()
+    {
+        Debug.Log("Awake of Game");
+        Game.Instance=this;
+    }
 
     private void Start()
     {
@@ -27,114 +44,85 @@ public class Game : NetworkBehaviour
 
     private void Update()
     {
-        if(IsHost || IsServer){
-            UpdateSelection();
-            DrawGrid();
-            board.DrawChosens();
 
-            // onClick use spell or move chosen
-            if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionZ != -1))
-            {
-                lastSquareSelected = board.squares[selectionX, selectionZ];
-                if (spellSelected!=null)
-                {
-                    Debug.Log(spellSelected.getName());
-                    if(board.reachableSquares[selectionX, selectionZ]==2){
-                        players[playerTurn].useSpell(lastSquareSelected, spellSelected);
-                        hm.updateHUDInfo();
-                    } else{
-                        Debug.Log("Target out of reach!");
-                    }
-                } else if (board.IsSquareAvailable(selectionX, selectionZ)){
-                    ChosenMove(selectionX, selectionZ);
-                    hm.updateHUDMP();
-                }
-                spellSelected=null; //Unselect spell on click
-                board.resetReachableSquares();
-            }
-        }
     }
 
-    public void init(HUDManager hm)
+    public void init()
     {
-        this.hm = hm;
-        offset = transform.position;
-        Debug.Log("host: " + IsHost);
-        if(NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer){
-            GameObject go = Instantiate(prefabs[0], transform.position, Quaternion.identity) as GameObject;
-            go.transform.SetParent(transform);
-            board = go.GetComponent<Board>();
-            board.init(1.0f, 0.5f, 16, offset);
-            players = board.SpawnAllChosen();
+        GameObject boardGO = Instantiate(prefabs[0], transform.position, Quaternion.identity) as GameObject;
+        boardGO.transform.SetParent(transform);
+        board = boardGO.GetComponent<Board>();
+        board.init(1.0f, 0.5f, 16);
 
-            int id = 0;
-            //create all spells in the game
-            Spell electricBlade = new Spell("Electric blade", 20, new CastingCondition((1,1), true, true));
-            electricBlade.effects.Add(new PhysicalDamage(board, 5));
-            spells.Add(id++, electricBlade);
+        int id = 0;
+        //create all spells in the game
+        Spell electricBlade = new Spell("Electric blade", 20, new CastingCondition((1,1), true, true));
+        electricBlade.effects.Add(new PhysicalDamage(board, 5));
+        spells.Add(id++, electricBlade);
 
-            Spell fireBall = new Spell("Fire ball", 30, new CastingCondition((2,6), false, true));
-            fireBall.effects.Add(new PhysicalDamage(board, 20));
-            spells.Add(id++, fireBall);
+        Spell fireBall = new Spell("Fire ball", 30, new CastingCondition((2,6), false, true));
+        fireBall.effects.Add(new PhysicalDamage(board, 20));
+        spells.Add(id++, fireBall);
 
-            Spell frozenGasp = new Spell("Frozen Gasp", 30, new CastingCondition((1,4), false, true));
-            frozenGasp.effects.Add(new PhysicalDamage(board, 20));
-            frozenGasp.effects.Add(new MPbuff(2, false, -1));
-            spells.Add(id++, frozenGasp);
+        Spell frozenGasp = new Spell("Frozen Gasp", 30, new CastingCondition((1,4), false, true));
+        frozenGasp.effects.Add(new PhysicalDamage(board, 20));
+        frozenGasp.effects.Add(new MPbuff(2, false, -1));
+        spells.Add(id++, frozenGasp);
 
-            Spell shuriken = new Spell("Shuriken", 30, new CastingCondition((1,8), true, true));
-            shuriken.effects.Add(new PhysicalDamage(board, 10));
-            spells.Add(id++, shuriken);
+        Spell shuriken = new Spell("Shuriken", 30, new CastingCondition((1,8), true, true));
+        shuriken.effects.Add(new PhysicalDamage(board, 10));
+        spells.Add(id++, shuriken);
 
-            Spell celerity = new Spell("Celerity", 10, new CastingCondition((0,0), true, true));
-            celerity.effects.Add(new MPbuff(1, true, 3));
-            spells.Add(id++, celerity);
+        Spell celerity = new Spell("Celerity", 10, new CastingCondition((0,0), true, true));
+        celerity.effects.Add(new MPbuff(1, true, 3));
+        spells.Add(id++, celerity);
 
-            Spell jadePalm = new Spell("Jade palm", 40, new CastingCondition((1,3), true, true));
-            jadePalm.effects.Add(new PhysicalDamage(board, 5));
-            jadePalm.effects.Add(new MoveTarget(board, 2));
-            spells.Add(id++, jadePalm);
+        Spell jadePalm = new Spell("Jade palm", 40, new CastingCondition((1,3), true, true));
+        jadePalm.effects.Add(new PhysicalDamage(board, 5));
+        jadePalm.effects.Add(new MoveTarget(board, 2));
+        spells.Add(id++, jadePalm);
 
-            //Affect spell to chosen
-            players[0].addSpell(new KeyValuePair<int, Spell> (0, spells[0]));
-            players[0].addSpell(new KeyValuePair<int, Spell> (1, spells[1]));
-            players[0].addSpell(new KeyValuePair<int, Spell> (2, spells[2]));
+        //Affect spell to chosen
+        players[0].addSpell(new KeyValuePair<int, Spell> (0, spells[0]));
+        players[0].addSpell(new KeyValuePair<int, Spell> (1, spells[1]));
+        players[0].addSpell(new KeyValuePair<int, Spell> (2, spells[2]));
 
-            players[1].addSpell(new KeyValuePair<int, Spell> (3, spells[3]));
-            players[1].addSpell(new KeyValuePair<int, Spell> (4, spells[4]));
-            players[1].addSpell(new KeyValuePair<int, Spell> (5, spells[5]));
+        players[1].addSpell(new KeyValuePair<int, Spell> (3, spells[3]));
+        players[1].addSpell(new KeyValuePair<int, Spell> (4, spells[4]));
+        players[1].addSpell(new KeyValuePair<int, Spell> (5, spells[5]));
 
-            //hm = Canvas.GetComponent<HUDManager>();
-            hm.initHUD(this);
-        }
+        IDplayerTurn.Value = 0;
+
+        players = board.SpawnAllChosen();
+        //boardGO.GetComponent<NetworkObject>().Spawn();
     }
 
-    private void DrawGrid(){ //TODO: Do better for redraw board model
+    public void DrawGrid(){ //TODO: Do better for redraw board model
         Vector3 widthLine = Vector3.right * board.getSquareSize() * board.getNbSquares();
         Vector3 heigthLine = Vector3.forward * board.getSquareSize() * board.getNbSquares();
         
         for(int i=0; i<=board.getNbSquares(); i++){
             Vector3 start = Vector3.forward * i;
-            Debug.DrawLine(start + offset, start + widthLine + offset);
+            Debug.DrawLine(start + transform.position, start + widthLine + transform.position);
             for(int j=0; j<=board.getNbSquares(); j++){
                 start = Vector3.right * i;
-                Debug.DrawLine(start + offset, start + heigthLine + offset);
+                Debug.DrawLine(start + transform.position, start + heigthLine + transform.position);
             }
         }
 
         // Draw selection
         if(selectionX >= 0 && selectionZ >= 0)
         {
-            Debug.DrawLine(Vector3.forward * selectionZ + Vector3.right * selectionX + offset,
-            Vector3.forward * (selectionZ + 1) + Vector3.right * (selectionX + 1) + offset);
+            Debug.DrawLine(Vector3.forward * selectionZ + Vector3.right * selectionX + transform.position,
+            Vector3.forward * (selectionZ + 1) + Vector3.right * (selectionX + 1) + transform.position);
         }
     }
 
-    private void ChosenMove(int x, int z)
+    public void ChosenMove(int x, int z)
     {
-        int distance = Utils.range(players[playerTurn].currentX, players[playerTurn].currentZ, x, z);
+        int distance = Utils.range(players[IDplayerTurn.Value].x.Value, players[IDplayerTurn.Value].z.Value, x, z);
         //Target Square too far from the chosen with his MP
-        if (distance > players[playerTurn].MP)
+        if (distance > players[IDplayerTurn.Value].MP)
         {
             Debug.Log("You can't move that far.");
             return;
@@ -142,10 +130,10 @@ public class Game : NetworkBehaviour
 
         //PATHFINDING
         // We try to find the quickest path from current x/z to targeted x/z
-        root = new Node(players[playerTurn].currentX, players[playerTurn].currentZ);
+        root = new Node(players[IDplayerTurn.Value].x.Value, players[IDplayerTurn.Value].z.Value);
         Node leaf = board.PathFinding(root, x, z, distance, leaves);  //We try first with number of MP = Range then we will increase this number if we didn't find a way
 
-        int tmpMP = players[playerTurn].MP;
+        int tmpMP = players[IDplayerTurn.Value].MP;
         tmpMP -= distance;
 
         int leavesIndex = 0;
@@ -184,15 +172,15 @@ public class Game : NetworkBehaviour
         //Debug.Log("MP : " + tmpMP);
         //END PATHFINDING
 
-        players[playerTurn].MP = tmpMP; //MP left to the chosen after moving
+        players[IDplayerTurn.Value].MP = tmpMP; //MP left to the chosen after moving
 
         //Moving entities
-        board.setEntityAtPos(x, z, players[playerTurn]);
-        board.setEntityAtPos(players[playerTurn].currentX, players[playerTurn].currentZ, null);
-        players[playerTurn].SetPosition(x, z);
+        board.setEntityAtPos(x, z, players[IDplayerTurn.Value]);
+        board.setEntityAtPos(players[IDplayerTurn.Value].x.Value, players[IDplayerTurn.Value].z.Value, null);
+        players[IDplayerTurn.Value].ModifyExistingPosition(x, z);
     }
 
-    private void UpdateSelection()
+    public void UpdateSelection()
     {
         if(!Camera.main)
             return;
@@ -212,11 +200,11 @@ public class Game : NetworkBehaviour
 
     public void EndTurn()
     {
-        players[playerTurn].passTurn();
+        players[IDplayerTurn.Value].passTurn();
         spellSelected = null;
         board.resetReachableSquares();
-        playerTurn = (playerTurn + 1) % players.Count;
-        players[playerTurn].beginTurn();
+        IDplayerTurn.Value = (IDplayerTurn.Value + 1) % players.Count;
+        players[IDplayerTurn.Value].beginTurn();
         hm.updateHUD();
         hm.updateHUDInfo();
     }
@@ -224,6 +212,24 @@ public class Game : NetworkBehaviour
     public void updateSpellSelected(int id)
     {
         spellSelected = spells[id];
-        board.updateReachableSquare(spellSelected, (players[playerTurn].currentX, players[playerTurn].currentZ));
+        board.updateReachableSquare(spellSelected, (players[IDplayerTurn.Value].x.Value, players[IDplayerTurn.Value].z.Value));
     }
+
+    override public void OnNetworkSpawn() {
+        Debug.Log(this.IDplayerTurn.Value);
+        Debug.Log("bite");
+    }
+
+[ServerRpc(RequireOwnership = false)]
+public void TestServerRpc(ServerRpcParams serverRpcParams = default)
+{
+    Debug.Log("GG");
+    var clientId = serverRpcParams.Receive.SenderClientId;
+    if (NetworkManager.ConnectedClients.ContainsKey(clientId))
+    {
+        var client = NetworkManager.ConnectedClients[clientId];
+        // Do things for this client
+        Debug.Log("clientId: " + clientId);
+    }
+}
 }

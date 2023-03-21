@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8878898753496235585}
   - component: {fileID: 8878898753496235586}
+  - component: {fileID: -2333872002541855705}
   m_Layer: 0
   m_Name: Board
   m_TagString: Untagged
@@ -56,3 +57,25 @@ MonoBehaviour:
   - {fileID: 2100000, guid: c81a2f6b95a09414390618e301d89541, type: 2}
   - {fileID: 2100000, guid: af2eb1a2237eb1d41973ec59997d6caa, type: 2}
   - {fileID: 2100000, guid: f60ed27ff408abb4f8dc45e92ec3b2e3, type: 2}
+  nbPlayers:
+    m_InternalValue: 0
+  nbObstacles:
+    m_InternalValue: 0
+  nbSquaresNetwork:
+    m_InternalValue: 0
+--- !u!114 &-2333872002541855705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8878898753496235591}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 951099334
+  AlwaysReplicateAsRoot: 0
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1

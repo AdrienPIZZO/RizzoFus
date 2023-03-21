@@ -7,7 +7,7 @@ public abstract class Effect
 {
     protected Board board;
     public abstract void apply(Chosen caster, Chosen target);
-    public abstract void apply(Chosen caster, Obstacles target);
+    public abstract void apply(Chosen caster, Obstacle target);
     /*public void apply(Chosen caster, EmptySquare target);*/
 }
 
@@ -24,7 +24,7 @@ public class PhysicalDamage : Effect
         target.HP -= (int) result;
     }
 
-    public override void apply(Chosen caster, Obstacles target){
+    public override void apply(Chosen caster, Obstacle target){
         Debug.Log("You applied PhysicalDamage effect on an obstacle!");
     }
     /*public void apply(Chosen caster, EmptySquare target){
@@ -41,7 +41,7 @@ public class MoveTarget : Effect
     }
 
     public override void apply(Chosen caster, Chosen target){
-        (int, int) vect = Utils.getVector(caster.currentX, caster.currentZ, target.currentX, target.currentZ); // Save vect between caster and target somewhere nice
+        (int, int) vect = Utils.getVector(caster.x.Value, caster.z.Value, target.x.Value, target.z.Value); // Save vect between caster and target somewhere nice
         (int, int) orientation;
         if(Math.Abs(vect.Item1) > Math.Abs(vect.Item2)){
             orientation = (Math.Abs(vect.Item1)/vect.Item1, 0);
@@ -57,17 +57,17 @@ public class MoveTarget : Effect
         //Debug.Log("vect: (" + vect.Item1 + "," + vect.Item2 +")");
         //Debug.Log("Orientation: (" + orientation.Item1 + "," + orientation.Item2 +")");
         int currentDistance = nbSquare;
-        (int, int) currentPos = (target.currentX, target.currentZ);
+        (int, int) currentPos = (target.x.Value, target.z.Value);
         while (currentDistance > 0 && board.IsSquareAvailable(currentPos.Item1 + orientation.Item1, currentPos.Item2 + orientation.Item2)){
             currentPos.Item1 += orientation.Item1;
             currentPos.Item2 += orientation.Item2;
             currentDistance--;
         }
-        target.SetPosition(currentPos.Item1, currentPos.Item2);
+        target.ModifyExistingPosition(currentPos.Item1, currentPos.Item2);
     }
 
 
-    public override void apply(Chosen caster, Obstacles target){
+    public override void apply(Chosen caster, Obstacle target){
         Debug.Log("You applied MoveTarget effect on an obstacle!");
     }
 

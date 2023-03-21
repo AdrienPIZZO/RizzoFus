@@ -34,18 +34,18 @@ public class HUDManager : MonoBehaviour
         hpBar = Instantiate(prefabs[1], new Vector3(100, 750, 0), Quaternion.identity) as GameObject;
         hpBar.transform.SetParent(transform);
         TextMeshProUGUI HPTextMesh = hpBar.GetComponentInChildren<TextMeshProUGUI>();
-        HPTextMesh.text = game.players[game.playerTurn].HP.ToString() + " HP";
+        HPTextMesh.text = game.players[game.IDplayerTurn.Value].HP.ToString() + " HP";
 
         mpBar = Instantiate(prefabs[1], new Vector3(100, 700, 0), Quaternion.identity) as GameObject;
         mpBar.transform.SetParent(transform);
         TextMeshProUGUI MPTextMesh = mpBar.GetComponentInChildren<TextMeshProUGUI>();
-        MPTextMesh.text = game.players[game.playerTurn].MP.ToString() + " MP";
+        MPTextMesh.text = game.players[game.IDplayerTurn.Value].MP.ToString() + " MP";
 
         powerGaugeBar = Instantiate(prefabs[1], new Vector3(150, 650, 0), Quaternion.identity) as GameObject;
         powerGaugeBar.transform.SetParent(transform);
         powerGaugeBar.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 300);
         TextMeshProUGUI PowerGaugeTextMesh = powerGaugeBar.GetComponentInChildren<TextMeshProUGUI>();
-        PowerGaugeTextMesh.text = game.players[game.playerTurn].powerGauge.ToString() + " POWER";
+        PowerGaugeTextMesh.text = game.players[game.IDplayerTurn.Value].powerGauge.ToString() + " POWER";
 
         GameObject passBtnGO = Instantiate(prefabs[0], new Vector3(1400, 25, 0), Quaternion.identity) as GameObject;
         passBtnGO.transform.SetParent(transform);
@@ -58,7 +58,7 @@ public class HUDManager : MonoBehaviour
         GameObject spellBtnGO;
         Button spellBtn;
         TextMeshProUGUI spellTextMesh;
-        foreach(KeyValuePair<int, Spell> s in game.players[game.playerTurn].spells){
+        foreach(KeyValuePair<int, Spell> s in game.players[game.IDplayerTurn.Value].spells){
             spellBtnGO = Instantiate(prefabs[0], new Vector3(i*200 + 100, 25, 0), Quaternion.identity) as GameObject;
             spellBtnGO.transform.SetParent(transform);
             spellBtn = spellBtnGO.GetComponent<Button>();
@@ -78,7 +78,7 @@ public class HUDManager : MonoBehaviour
         GameObject spellBtnGO;
         Button spellBtn;
         TextMeshProUGUI spellTextMesh;
-        foreach(KeyValuePair<int, Spell> s in game.players[game.playerTurn].spells){
+        foreach(KeyValuePair<int, Spell> s in game.players[game.IDplayerTurn.Value].spells){
             spellBtnGO = Instantiate(prefabs[0], new Vector3(i*200 + 100, 25, 0), Quaternion.identity) as GameObject;
             spellBtnGO.transform.SetParent(transform);
             spellBtn = spellBtnGO.GetComponent<Button>();
@@ -91,16 +91,16 @@ public class HUDManager : MonoBehaviour
 
     public void updateHUDInfo(){//hpBar for now, see if we rename both updates
         TextMeshProUGUI HPTextMesh = hpBar.GetComponentInChildren<TextMeshProUGUI>();
-        HPTextMesh.text = game.players[game.playerTurn].HP.ToString() + " HP";
+        HPTextMesh.text = game.players[game.IDplayerTurn.Value].HP.ToString() + " HP";
         TextMeshProUGUI powerGaugeTextMesh = powerGaugeBar.GetComponentInChildren<TextMeshProUGUI>();
-        powerGaugeTextMesh.text = game.players[game.playerTurn].powerGauge.ToString() + " POWER";
+        powerGaugeTextMesh.text = game.players[game.IDplayerTurn.Value].powerGauge.ToString() + " POWER";
         updateHUDMP();
     }
 
     public void updateHUDMP(){
         TextMeshProUGUI spellTextMesh;
         spellTextMesh = mpBar.GetComponentInChildren<TextMeshProUGUI>();
-        spellTextMesh.text = game.players[game.playerTurn].MP.ToString() + " MP";
+        spellTextMesh.text = game.players[game.IDplayerTurn.Value].MP.ToString() + " MP";
     }
 
     public void EndTurnPressed()
