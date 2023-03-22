@@ -16,9 +16,10 @@ public class Host : MonoBehaviour
     void Start()
     {
         GameObject gameGO = Instantiate(gamePrefab) as GameObject;
+        gameGO.GetComponent<NetworkObject>().Spawn();
         game = gameGO.GetComponent<Game>();
         game.init();
-        gameGO.GetComponent<NetworkObject>().Spawn();
+        //gameGO.GetComponent<NetworkObject>().Spawn();
     }
 
     // Update is called once per frame
@@ -28,7 +29,6 @@ public class Host : MonoBehaviour
         game.DrawGrid();
         game.board.DrawChosens();
         if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionZ != -1)){
-            Debug.Log("Click");
             game.lastSquareSelected = game.board.squares[selectionX, selectionZ];
             if (game.spellSelected!=null)
             {
@@ -39,14 +39,12 @@ public class Host : MonoBehaviour
                 } else{
                     Debug.Log("Target out of reach!");
                 }
+                game.board.resetReachableSquares();
             } else if (game.board.IsSquareAvailable(selectionX, selectionZ)){
                 game.ChosenMove(selectionX, selectionZ);
-                MoveServerRpc();
-
                 //game.hm.updateHUDMP();
             }
             game.spellSelected=null; //Unselect spell on click
-            game.board.resetReachableSquares();
         }
 
     }
@@ -87,11 +85,6 @@ public class Host : MonoBehaviour
             Debug.DrawLine(Vector3.forward * selectionZ + Vector3.right * selectionX + game.transform.position,
             Vector3.forward * (selectionZ + 1) + Vector3.right * (selectionX + 1) + game.transform.position);
         }
-    }
-
-    [ServerRpc]
-    private void MoveServerRpc(){
-
     }
 }
 

@@ -7,7 +7,7 @@ public class Board : NetworkBehaviour
 {
     private float SquareSize /*= 1.0f*/;
     private float SquareOffset /*= 0.5f*/;
-    private int nbSquares /* = 8*/;
+    //private int nbSquaresNetwork.Value /* = 8*/;
     //private Entity[,] elements;/*{set;get;}*/
     public Square[,] squares;/*{set;get;}*/
     public GameObject[,] squaresGO;/*{set;get;}*/ //Duplicate used for swaping meshRender material
@@ -54,29 +54,28 @@ public class Board : NetworkBehaviour
     public void init(float SquareSize, float SquareOffset, int nbSquares){
         this.SquareSize = SquareSize;
         this.SquareOffset = SquareOffset;
-        this.nbSquares = nbSquares;
-        //Vector3 offset = transform.position;
+        this.nbSquaresNetwork.Value = nbSquares;
         GameObject planeGO = Instantiate(prefabs[1], transform.position + new Vector3(getNbSquares()*getSquareSize()/2, 0, getNbSquares()*getSquareSize()/2),
         Quaternion.identity) as GameObject;//Plane GO
         planeGO.GetComponent<NetworkObject>().Spawn();
         planeGO.transform.SetParent(transform);
-        planeGO.transform.localScale = new Vector3(nbSquares * prefabs[0].transform.localScale.x, 1, nbSquares * prefabs[0].transform.localScale.z);
-        squares =  new Square[nbSquares, nbSquares];
-        squaresGO =  new GameObject[nbSquares, nbSquares];
-        reachableSquares =  new int[nbSquares, nbSquares];
-        for(int x=0; x<nbSquares; x++){
-            for (int z=0; z<nbSquares; z++){
+        planeGO.transform.localScale = new Vector3(nbSquaresNetwork.Value * prefabs[0].transform.localScale.x, 1, nbSquaresNetwork.Value * prefabs[0].transform.localScale.z);
+        squares =  new Square[nbSquaresNetwork.Value, nbSquaresNetwork.Value];
+        squaresGO =  new GameObject[nbSquaresNetwork.Value, nbSquaresNetwork.Value];
+        reachableSquares =  new int[nbSquaresNetwork.Value, nbSquaresNetwork.Value];
+        for(int x=0; x<nbSquaresNetwork.Value; x++){
+            for (int z=0; z<nbSquaresNetwork.Value; z++){
                 GameObject go = Instantiate(prefabs[0], transform.position + GetSquareCenter(x, z), Quaternion.identity) as GameObject;
+                go.GetComponent<NetworkObject>().Spawn();
                 go.transform.SetParent(transform);
                 Square square = go.GetComponent<Square>();
                 squaresGO[x,z]= go;
                 squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[getIndexPrefabSquare(x,z)];
                 squares[x,z]= square;
                 square.init(this, x, z);
-                go.GetComponent<NetworkObject>().Spawn();
+                //go.GetComponent<NetworkObject>().Spawn();
             }
         }
-        nbSquaresNetwork.Value=nbSquares;
         SpawnAllObstacles();
     }
 
@@ -101,13 +100,13 @@ public class Board : NetworkBehaviour
         }
     }
     public int getNbSquares(){
-        return nbSquares;
+        return nbSquaresNetwork.Value;
     }
     public float getSquareSize(){
         return SquareSize;
     }
     public bool doesSquareExist(int x, int z){
-        return x >= 0 && z >= 0 && x < nbSquares && z < nbSquares;
+        return x >= 0 && z >= 0 && x < nbSquaresNetwork.Value && z < nbSquaresNetwork.Value;
     }
     public float getSquareOffset(){
         return SquareOffset;
@@ -125,14 +124,10 @@ public class Board : NetworkBehaviour
         return origin;
     }
     public bool IsSquareAvailable(int x, int z){
-        bool flag = doesSquareExist(x,z);
-        if(flag) {
-            flag = squares[x, z].isEmpty();
-        }
-        return flag;
+        return doesSquareExist(x,z) && squares[x, z].isEmpty();
     }
     public void setEntityAtPos(int x, int z, Entity e){
-        Debug.Log("setEntityAtPos: (" + x + ";" + z + ")");
+        //Debug.Log("setEntityAtPos: (" + x + ";" + z + ")");
         this.squares[x, z].entity = e;
     }
     public Square[,] GetSquares(){
@@ -144,12 +139,13 @@ public class Board : NetworkBehaviour
         //Vector3 offset = transform.position;
         GameObject go = Instantiate(prefabs[indexPrefab], transform.position + GetSquareCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2,
         Quaternion.identity) as GameObject;
+        go.GetComponent<NetworkObject>().Spawn();
         go.transform.SetParent(transform);
         Chosen chosen = go.GetComponent<Chosen>();
         setEntityAtPos(x, z, chosen);
         chosen.setBoard(this);
         chosen.initPos(x, z);
-        go.GetComponent<NetworkObject>().Spawn();
+        //go.GetComponent<NetworkObject>().Spawn();
         return chosen;
     }
 
@@ -158,14 +154,15 @@ public class Board : NetworkBehaviour
         //Vector3 offset = transform.position;
         GameObject go = Instantiate(prefabs[indexPrefab], transform.position + GetSquareCenter(x, z) + Vector3.up * prefabs[indexPrefab].GetComponent<Renderer>().bounds.size.y / 2,
         Quaternion.identity) as GameObject;
+        go.GetComponent<NetworkObject>().Spawn();
         go.transform.SetParent(transform);
         Obstacle obstacle = go.GetComponent<Obstacle>();
-        Debug.Log("board: " + this==null);
-        Debug.Log("obstacle: " + obstacle==null);
+        //Debug.Log("board: " + this==null);
+        //Debug.Log("obstacle: " + obstacle==null);
         setEntityAtPos(x, z, obstacle);
         obstacle.setBoard(this);
         obstacle.initPos(x, z);
-        go.GetComponent<NetworkObject>().Spawn();
+        //go.GetComponent<NetworkObject>().Spawn();
     }
 
     public List<Chosen> SpawnAllChosen()
@@ -209,7 +206,7 @@ public class Board : NetworkBehaviour
             Node res4 = null;
             current.childrens = new List<Node>();
 
-            if (current.x + 1 < nbSquares && IsSquareAvailable(current.x+1, current.z))
+            if (current.x + 1 < nbSquaresNetwork.Value && IsSquareAvailable(current.x+1, current.z))
             {
                 node = new Node(current.x + 1, current.z);
                 node.parent = current;
@@ -217,7 +214,7 @@ public class Board : NetworkBehaviour
                 res1 = PathFinding(node, x, z, nbMP - 1, leaves);
                 if (res1 != null) return res1;
             }
-            if (current.z + 1 < nbSquares && IsSquareAvailable(current.x, current.z+1))
+            if (current.z + 1 < nbSquaresNetwork.Value && IsSquareAvailable(current.x, current.z+1))
             {
                 node = new Node(current.x, current.z + 1);
                 node.parent = current;

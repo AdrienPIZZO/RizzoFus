@@ -16,6 +16,7 @@ public class Client : MonoBehaviour
     {
         //hm = Canvas.GetComponent<HUDManager>();
         //hm.initHUD(this);
+        //StartCoroutine(WaitInit(1));
     }
 
     // Update is called once per frame
@@ -32,51 +33,62 @@ public class Client : MonoBehaviour
                 if (game.spellSelected!=null)
                 {
                     Debug.Log(game.spellSelected.getName());
+                    /*
                     if(game.board.reachableSquares[selectionX, selectionZ]==2){
                         game.players[game.IDplayerTurn.Value].useSpell(game.lastSquareSelected, game.spellSelected);
                         game.hm.updateHUDInfo();
                     } else{
                         Debug.Log("Target out of reach!");
                     }
+                    */
+                    //game.SpellServerRpc(idSpel);
+                    //game.board.resetReachableSquares();
                 } else if (game.board.IsSquareAvailable(selectionX, selectionZ)){
                     //game.ChosenMove(selectionX, selectionZ);
-                    MoveServerRpc();
-
-                    game.hm.updateHUDMP();
+                    Debug.Log("Try serverRpc!");
+                    game.MoveRequestServerRpc(selectionX, selectionZ);
+                    //game.hm.updateHUDMP();
                 }
                 game.spellSelected=null; //Unselect spell on click
-                game.board.resetReachableSquares();
             }
         }
+    }
+
+    private IEnumerator WaitInit(float timeToWait)
+    {
+        while (isInitialized())
+        {
+            yield return new WaitForSeconds(timeToWait);
+        }
+
     }
 
     private bool isInitialized(){
         if(Game.Instance != null && Board.Instance != null && Plane.Instance != null 
         && Board.Instance.nbSquaresNetwork.Value != 0 && Board.Instance.nbPlayers.Value != 0 && Board.Instance.nbObstacles.Value != 0){
             if(Board.Instance.nbPlayers.Value == Chosen.Instances.Count && Board.Instance.nbObstacles.Value == Obstacle.Instances.Count && Board.Instance.nbSquaresNetwork.Value*Board.Instance.nbSquaresNetwork.Value == Square.Instances.Count){
-                    bool areAllSquarePosInit = true;
-                    foreach(Square square in Square.Instances){
-                        if(square.x.Value==-1 || square.z.Value==-1){
-                            areAllSquarePosInit=false;
-                        }
+                bool areAllSquarePosInit = true;
+                foreach(Square square in Square.Instances){
+                    if(square.x.Value==-1 || square.z.Value==-1){
+                        areAllSquarePosInit=false;
                     }
-                    foreach(Chosen chosen in Chosen.Instances){
-                        if(chosen.x.Value==-1 || chosen.z.Value==-1){
-                            areAllSquarePosInit=false;
-                        }
+                }
+                foreach(Chosen chosen in Chosen.Instances){
+                    if(chosen.x.Value==-1 || chosen.z.Value==-1){
+                        areAllSquarePosInit=false;
                     }
-                    foreach(Obstacle obstacle in Obstacle.Instances){
-                        if(obstacle.x.Value==-1 || obstacle.z.Value==-1){
-                            areAllSquarePosInit=false;
-                        }
+                }
+                foreach(Obstacle obstacle in Obstacle.Instances){
+                    if(obstacle.x.Value==-1 || obstacle.z.Value==-1){
+                        areAllSquarePosInit=false;
                     }
-                    if(areAllSquarePosInit){
-                        initialize();
-                        Debug.Log("INIT CLIENT SUCCESS");
-                        return true;
-                    }
+                }
+                if(areAllSquarePosInit){
+                    initialize();
+                    Debug.Log("INIT CLIENT SUCCESS");
+                    return true;
+                }
             }
-
         }
         return false;
     }
@@ -84,10 +96,12 @@ public class Client : MonoBehaviour
         game = Game.Instance;
         game.board = Board.Instance;
         game.board.squares = new Square[game.board.nbSquaresNetwork.Value, game.board.nbSquaresNetwork.Value];
-        int i =0;
+        game.board.reachableSquares = new int[game.board.nbSquaresNetwork.Value, game.board.nbSquaresNetwork.Value];
+        //int i =0;
         foreach(Square square in Square.Instances){
             game.board.squares[square.x.Value, square.z.Value] = square;
         }
+        game.board.resetReachableSquares();//set the squares black and white
         foreach(Chosen chosen in Chosen.Instances){
             game.players.Add(chosen);
             game.board.squares[chosen.x.Value, chosen.z.Value].entity = chosen;
@@ -133,10 +147,5 @@ public class Client : MonoBehaviour
             Debug.DrawLine(Vector3.forward * selectionZ + Vector3.right * selectionX + game.transform.position,
             Vector3.forward * (selectionZ + 1) + Vector3.right * (selectionX + 1) + game.transform.position);
         }
-    }
-
-    [ServerRpc]
-    private void MoveServerRpc(){
-
     }
 }

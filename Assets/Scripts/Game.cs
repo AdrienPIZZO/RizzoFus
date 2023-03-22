@@ -33,7 +33,7 @@ public class Game : NetworkBehaviour
 
     private void Awake()
     {
-        Debug.Log("Awake of Game");
+        //Debug.Log("Awake of Game");
         Game.Instance=this;
     }
 
@@ -50,6 +50,7 @@ public class Game : NetworkBehaviour
     public void init()
     {
         GameObject boardGO = Instantiate(prefabs[0], transform.position, Quaternion.identity) as GameObject;
+        boardGO.GetComponent<NetworkObject>().Spawn();
         boardGO.transform.SetParent(transform);
         board = boardGO.GetComponent<Board>();
         board.init(1.0f, 0.5f, 16);
@@ -82,6 +83,8 @@ public class Game : NetworkBehaviour
         jadePalm.effects.Add(new MoveTarget(board, 2));
         spells.Add(id++, jadePalm);
 
+        players = board.SpawnAllChosen();
+
         //Affect spell to chosen
         players[0].addSpell(new KeyValuePair<int, Spell> (0, spells[0]));
         players[0].addSpell(new KeyValuePair<int, Spell> (1, spells[1]));
@@ -93,7 +96,6 @@ public class Game : NetworkBehaviour
 
         IDplayerTurn.Value = 0;
 
-        players = board.SpawnAllChosen();
         //boardGO.GetComponent<NetworkObject>().Spawn();
     }
 
@@ -216,20 +218,25 @@ public class Game : NetworkBehaviour
     }
 
     override public void OnNetworkSpawn() {
-        Debug.Log(this.IDplayerTurn.Value);
-        Debug.Log("bite");
+
     }
 
-[ServerRpc(RequireOwnership = false)]
-public void TestServerRpc(ServerRpcParams serverRpcParams = default)
-{
-    Debug.Log("GG");
-    var clientId = serverRpcParams.Receive.SenderClientId;
-    if (NetworkManager.ConnectedClients.ContainsKey(clientId))
+    [ServerRpc(RequireOwnership = false)]
+    public void MoveRequestServerRpc(int x, int z)
     {
-        var client = NetworkManager.ConnectedClients[clientId];
-        // Do things for this client
-        Debug.Log("clientId: " + clientId);
+        Debug.Log("Move request received from client to this server");
+        ChosenMove(x, z);
     }
-}
+
+    [ServerRpc(RequireOwnership = false)]
+    public void SpellRequestServerRpc(int idSpell, int x, int z)
+    {
+        Debug.Log("Spell request received from client to this server");
+        Debug.Log(spells[idSpell].getName());
+        if(board.reachableSquares[x, z]==2){
+            players[IDplayerTurn.Value].useSpell(board.squares[x, z], spells[idSpell]);
+        } else{
+            Debug.Log("Target out of reach!");
+        }
+    }
 }

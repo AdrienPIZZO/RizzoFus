@@ -22,8 +22,8 @@ public class Entity : NetworkBehaviour
     }
 
     public void setBoard(Board board){
-        Debug.Log("board: " + board==null);
-        Debug.Log("obstacle: " + this==null);
+        //Debug.Log("board: " + board==null);
+        //Debug.Log("obstacle: " + this==null);
         this.board = board;
     }
 

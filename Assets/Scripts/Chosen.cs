@@ -27,7 +27,7 @@ public class Chosen : Entity
     private void Awake()
     {
         Instances.Add(this);
-        Debug.Log("Awake of Chosen");
+        //Debug.Log("Awake of Chosen");
     }
     public void addSpell(KeyValuePair<int, Spell> s){
         if(spells == null){
