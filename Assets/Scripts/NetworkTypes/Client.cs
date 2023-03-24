@@ -3,70 +3,79 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-public class Client : MonoBehaviour
+public class Client : Controler
 {
     private int selectionX = -1;
     private int selectionZ = -1;
     public bool isASpellSelected = false;
-    public Game game = null;
     private bool init = false;
+    public GameObject gameHUDPrefab;
+    private HUDManager hm;
+    
+
+    //Try to create prefab of the whole model to be able to spawn one all of it
+    /*
+    public GameObject test;
+    public GameObject testChild;
+    */
 
     // Start is called before the first frame update
     void Start()
     {
-        //hm = Canvas.GetComponent<HUDManager>();
-        //hm.initHUD(this);
-        //StartCoroutine(WaitInit(1));
+        //Try to create prefab of the whole model to be able to spawn one all of it
+        /*
+        GameObject testGO = Instantiate(test);
+        GameObject testChildGO = Instantiate(testChild);
+        testChildGO.transform.SetParent(testGO.transform);
+        //testGO.GetComponent<Test>().testChild = testGO.GetComponentInChildren<TestChild>();
+        testChildGO.AddComponent<TestChild>();
+        NetworkManager.Singleton.AddNetworkPrefab(testGO);
+        Destroy(testGO);
+        */
+
+        //WARNIG if Instantiate is non blocking, it can start update without HUDManager singleton set
+        playerID = 1;
+        enabled = false;
+        GameObject canvas = GameObject.FindGameObjectWithTag("Canvas");
+        hm = Instantiate(gameHUDPrefab, GameObject.FindGameObjectWithTag("Canvas").transform.position,
+        Quaternion.identity, GameObject.FindGameObjectWithTag("Canvas").transform).GetComponent<HUDManager>();
+        StartCoroutine(WaitInit(1));
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(!init){
-            init = isInitialized();
-        }else{
-            UpdateSelection();
-            game.DrawGrid();
-            //game.board.DrawChosens();
-            if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionZ != -1)){
-                game.lastSquareSelected = game.board.squares[selectionX, selectionZ];
-                if (game.spellSelected!=null)
-                {
-                    Debug.Log(game.spellSelected.getName());
-                    /*
-                    if(game.board.reachableSquares[selectionX, selectionZ]==2){
-                        game.players[game.IDplayerTurn.Value].useSpell(game.lastSquareSelected, game.spellSelected);
-                        game.hm.updateHUDInfo();
-                    } else{
-                        Debug.Log("Target out of reach!");
-                    }
-                    */
-                    //game.SpellServerRpc(idSpel);
-                    //game.board.resetReachableSquares();
-                } else if (game.board.IsSquareAvailable(selectionX, selectionZ)){
-                    //game.ChosenMove(selectionX, selectionZ);
-                    Debug.Log("Try serverRpc!");
-                    game.MoveRequestServerRpc(selectionX, selectionZ);
-                    //game.hm.updateHUDMP();
-                }
-                game.spellSelected=null; //Unselect spell on click
+        UpdateSelection();
+        game.DrawGrid();
+        if(Input.GetMouseButtonDown(0) && (selectionX != -1 || selectionZ != -1)){
+            game.lastSquareSelected = game.board.squares[selectionX, selectionZ];
+            if (game.spellSelected!=null)
+            {
+                Debug.Log(game.spellSelected.getName());
+                //game.SpellServerRpc(idSpel);
+                
+            } else if (game.board.IsSquareAvailable(selectionX, selectionZ)){
+                game.MoveRequestServerRpc(selectionX, selectionZ);
             }
+            game.board.resetReachableSquares();
+            game.spellSelected=null; //Unselect spell on click
         }
     }
 
     private IEnumerator WaitInit(float timeToWait)
     {
-        while (isInitialized())
+        while (!isInitialized())
         {
             yield return new WaitForSeconds(timeToWait);
         }
-
+        enabled = true;
     }
 
     private bool isInitialized(){
         if(Game.Instance != null && Board.Instance != null && Plane.Instance != null 
         && Board.Instance.nbSquaresNetwork.Value != 0 && Board.Instance.nbPlayers.Value != 0 && Board.Instance.nbObstacles.Value != 0){
-            if(Board.Instance.nbPlayers.Value == Chosen.Instances.Count && Board.Instance.nbObstacles.Value == Obstacle.Instances.Count && Board.Instance.nbSquaresNetwork.Value*Board.Instance.nbSquaresNetwork.Value == Square.Instances.Count){
+            if(Board.Instance.nbPlayers.Value == Chosen.Instances.Count && Board.Instance.nbObstacles.Value == Obstacle.Instances.Count &&
+            Board.Instance.nbSquaresNetwork.Value*Board.Instance.nbSquaresNetwork.Value == Square.Instances.Count){
                 bool areAllSquarePosInit = true;
                 foreach(Square square in Square.Instances){
                     if(square.x.Value==-1 || square.z.Value==-1){
@@ -85,7 +94,7 @@ public class Client : MonoBehaviour
                 }
                 if(areAllSquarePosInit){
                     initialize();
-                    Debug.Log("INIT CLIENT SUCCESS");
+                    Debug.Log("INIT CLIENT SUCCESS!");
                     return true;
                 }
             }
@@ -101,7 +110,6 @@ public class Client : MonoBehaviour
         foreach(Square square in Square.Instances){
             game.board.squares[square.x.Value, square.z.Value] = square;
         }
-        game.board.resetReachableSquares();//set the squares black and white
         foreach(Chosen chosen in Chosen.Instances){
             game.players.Add(chosen);
             game.board.squares[chosen.x.Value, chosen.z.Value].entity = chosen;
@@ -109,6 +117,52 @@ public class Client : MonoBehaviour
         foreach(Obstacle obstacle in Obstacle.Instances){
             game.board.squares[obstacle.x.Value, obstacle.z.Value].entity = obstacle;
         }
+
+        //TODO: load from db or serialize from server
+        int id = 0;
+        //create all spells in the game 
+        Spell electricBlade = new Spell("Electric blade", 20, new CastingCondition((1,1), true, true));
+        electricBlade.effects.Add(new PhysicalDamage(game.board, 5));
+        game.spells.Add(id++, electricBlade);
+
+        Spell fireBall = new Spell("Fire ball", 30, new CastingCondition((2,6), false, true));
+        fireBall.effects.Add(new PhysicalDamage(game.board, 20));
+        game.spells.Add(id++, fireBall);
+
+        Spell frozenGasp = new Spell("Frozen Gasp", 30, new CastingCondition((1,4), false, true));
+        frozenGasp.effects.Add(new PhysicalDamage(game.board, 20));
+        frozenGasp.effects.Add(new MPbuff(2, false, -1));
+        game.spells.Add(id++, frozenGasp);
+
+        Spell shuriken = new Spell("Shuriken", 30, new CastingCondition((1,8), true, true));
+        shuriken.effects.Add(new PhysicalDamage(game.board, 10));
+        game.spells.Add(id++, shuriken);
+
+        Spell celerity = new Spell("Celerity", 10, new CastingCondition((0,0), true, true));
+        celerity.effects.Add(new MPbuff(1, true, 3));
+        game.spells.Add(id++, celerity);
+
+        Spell jadePalm = new Spell("Jade palm", 40, new CastingCondition((1,3), true, true));
+        jadePalm.effects.Add(new PhysicalDamage(game.board, 5));
+        jadePalm.effects.Add(new MoveTarget(game.board, 2));
+        game.spells.Add(id++, jadePalm);
+
+        //Affect spell to chosen
+        game.players[0].addSpell(new KeyValuePair<int, Spell> (0, game.spells[0]));
+        game.players[0].addSpell(new KeyValuePair<int, Spell> (1, game.spells[1]));
+        game.players[0].addSpell(new KeyValuePair<int, Spell> (2, game.spells[2]));
+
+        game.players[1].addSpell(new KeyValuePair<int, Spell> (3, game.spells[3]));
+        game.players[1].addSpell(new KeyValuePair<int, Spell> (4, game.spells[4]));
+        game.players[1].addSpell(new KeyValuePair<int, Spell> (5, game.spells[5]));
+        
+        for(int x=0; x<game.board.nbSquaresNetwork.Value; x++){
+            for (int z=0; z<game.board.nbSquaresNetwork.Value; z++){
+                game.board.squares[x,z].GetComponent<MeshRenderer>().material = game.board.materials[game.board.getIndexPrefabSquare(x,z)];
+            }
+        }
+
+        hm.initHUD(this);
     }
 
     private void UpdateSelection()

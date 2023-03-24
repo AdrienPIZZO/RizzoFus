@@ -45,11 +45,11 @@ public class Spell
             List<(int, int)> squarePos = Utils.getSquaresAtRange(i, position, board);
             for(int j=0; j<squarePos.Count; j++){
                 board.reachableSquares[squarePos[j].Item1, squarePos[j].Item2]=2;
-                board.squaresGO[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = board.materials[2];
+                board.squares[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = board.materials[2];
                 if(castingCondition.LOS){
                     if(!lineOfSight(board, position, squarePos[j])){
                         board.reachableSquares[squarePos[j].Item1, squarePos[j].Item2]=1;
-                        board.squaresGO[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = board.materials[1];
+                        board.squares[squarePos[j].Item1, squarePos[j].Item2].GetComponentInParent<MeshRenderer>().material = board.materials[1];
                     }
                 }
             }

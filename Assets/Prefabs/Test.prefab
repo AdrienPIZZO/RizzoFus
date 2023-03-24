@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &8941269691814886175
+--- !u!1 &7512297584407600832
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,22 +8,23 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8149672898383478697}
-  - component: {fileID: -822008031588389168}
+  - component: {fileID: 5213779782953059227}
+  - component: {fileID: 10509253135068536}
+  - component: {fileID: 604709350610931857}
   m_Layer: 0
-  m_Name: Host
+  m_Name: Test
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8149672898383478697
+--- !u!4 &5213779782953059227
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8941269691814886175}
+  m_GameObject: {fileID: 7512297584407600832}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -32,21 +33,32 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-822008031588389168
+--- !u!114 &10509253135068536
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8941269691814886175}
+  m_GameObject: {fileID: 7512297584407600832}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b1d8a062979e4a4eb5dc9ce3746f7f4, type: 3}
+  m_Script: {fileID: 11500000, guid: f26868d89f000a54e8a12ec02bedcddb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isASpellSelected: 0
-  game: {fileID: 0}
-  gamePrefab: {fileID: 4348472445893081111, guid: 91bf69eda5215de4cb17e7264e3caa89,
-    type: 3}
-  gameHUDPrefab: {fileID: 8323722165207637736, guid: 787dd73578c1b8548b9d50db67c9df9a,
-    type: 3}
+  testChild: {fileID: 0}
+--- !u!114 &604709350610931857
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7512297584407600832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 951099334
+  AlwaysReplicateAsRoot: 0
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1

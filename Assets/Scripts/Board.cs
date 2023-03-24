@@ -10,7 +10,7 @@ public class Board : NetworkBehaviour
     //private int nbSquaresNetwork.Value /* = 8*/;
     //private Entity[,] elements;/*{set;get;}*/
     public Square[,] squares;/*{set;get;}*/
-    public GameObject[,] squaresGO;/*{set;get;}*/ //Duplicate used for swaping meshRender material
+    //public GameObject[,] squaresGO;/*{set;get;}*/ //Duplicate used for swaping meshRender material
     public int[,] reachableSquares;
     public bool isASpellSelected = false;
     public List<GameObject> prefabs;
@@ -25,7 +25,7 @@ public class Board : NetworkBehaviour
     private void Awake()
     {
         Instance = this;
-        Debug.Log("Awake of Board");
+        //Debug.Log("Awake of Board");
     }
 
     private void Start()
@@ -37,7 +37,11 @@ public class Board : NetworkBehaviour
 
     }
 
-    
+    public override void OnNetworkSpawn()
+    {
+        //squaresGO =  new GameObject[nbSquaresNetwork.Value, nbSquaresNetwork.Value];
+        reachableSquares =  new int[nbSquaresNetwork.Value, nbSquaresNetwork.Value];
+    }
 
     public void DrawChosens(){
         //TODO: Do better for redraw board model
@@ -61,7 +65,7 @@ public class Board : NetworkBehaviour
         planeGO.transform.SetParent(transform);
         planeGO.transform.localScale = new Vector3(nbSquaresNetwork.Value * prefabs[0].transform.localScale.x, 1, nbSquaresNetwork.Value * prefabs[0].transform.localScale.z);
         squares =  new Square[nbSquaresNetwork.Value, nbSquaresNetwork.Value];
-        squaresGO =  new GameObject[nbSquaresNetwork.Value, nbSquaresNetwork.Value];
+        //squaresGO =  new GameObject[nbSquaresNetwork.Value, nbSquaresNetwork.Value];
         reachableSquares =  new int[nbSquaresNetwork.Value, nbSquaresNetwork.Value];
         for(int x=0; x<nbSquaresNetwork.Value; x++){
             for (int z=0; z<nbSquaresNetwork.Value; z++){
@@ -69,9 +73,9 @@ public class Board : NetworkBehaviour
                 go.GetComponent<NetworkObject>().Spawn();
                 go.transform.SetParent(transform);
                 Square square = go.GetComponent<Square>();
-                squaresGO[x,z]= go;
-                squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[getIndexPrefabSquare(x,z)];
+                //squaresGO[x,z]= go;
                 squares[x,z]= square;
+                squares[x,z].GetComponent<MeshRenderer>().material = materials[getIndexPrefabSquare(x,z)];
                 square.init(this, x, z);
                 //go.GetComponent<NetworkObject>().Spawn();
             }
@@ -79,7 +83,7 @@ public class Board : NetworkBehaviour
         SpawnAllObstacles();
     }
 
-    private int getIndexPrefabSquare(int x, int z){
+    public int getIndexPrefabSquare(int x, int z){
         return ((x + z) % 2) == 0 ? 3 : 4; 
     }
 
@@ -95,7 +99,7 @@ public class Board : NetworkBehaviour
         for(int x = 0; x < reachableSquares.GetLength(0); x++){
             for(int z = 0; z < reachableSquares.GetLength(1); z++){
                 reachableSquares[x,z]=0;
-                squaresGO[x,z].GetComponentInParent<MeshRenderer>().material = materials[getIndexPrefabSquare(x, z)];
+                squares[x,z].GetComponent<MeshRenderer>().material = materials[getIndexPrefabSquare(x, z)];
             }
         }
     }

@@ -36,7 +36,6 @@ public class Buff : Effect //Effect apply instant on use
 
     public virtual void applyBuff(){
         nbTurnRemaining--;
-        Debug.Log("poly ??");
     }
 }
 public class MPbuff : Buff
@@ -49,7 +48,6 @@ public class MPbuff : Buff
 
     public override void applyBuff(){
         base.applyBuff();
-        target.MP += amount;
-        Debug.Log("-1");
+        target.MP.Value += amount;
     }
 }

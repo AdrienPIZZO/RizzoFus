@@ -46,3 +46,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isASpellSelected: 0
   game: {fileID: 0}
+  gameHUDPrefab: {fileID: 8323722165207637736, guid: 787dd73578c1b8548b9d50db67c9df9a,
+    type: 3}

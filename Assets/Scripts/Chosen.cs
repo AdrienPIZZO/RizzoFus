@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Unity.Netcode;
 
 public class Chosen : Entity
 {
@@ -12,17 +13,22 @@ public class Chosen : Entity
     private const int ARMORMAX = 50;// % based
     private const int STRENGTHMAX = 200;
 
-    public int MP = MPMAX;
-    public int HP = HPMAX;
-    public int powerGauge = PWRGAUGEMAX/2;
-    public int powerRegen = 50;
-    public int armor = 10;// % based
-    public int strength = 5;
+    public NetworkVariable<int> MP = new NetworkVariable<int>(MPMAX);
+    public NetworkVariable<int> HP = new NetworkVariable<int>(HPMAX);
+    public NetworkVariable<int> powerGauge = new NetworkVariable<int>(PWRGAUGEMAX/2);
+    public NetworkVariable<int> powerRegen = new NetworkVariable<int>(50);
+    public NetworkVariable<int> armor = new NetworkVariable<int>(10);
+    public NetworkVariable<int> strength = new NetworkVariable<int>(5);// % based
+
     public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
-
     public List<Buff> buffs = new List<Buff>();
-
     public static List<Chosen> Instances = new List<Chosen>();
+
+    override public void OnNetworkSpawn(){
+        MP.OnValueChanged = HUDManager.Singleton.onMPChange;
+        HP.OnValueChanged = HUDManager.Singleton.onHPChange;
+        powerGauge.OnValueChanged = HUDManager.Singleton.onPowerGaugeChange;
+    }
 
     private void Awake()
     {
@@ -30,9 +36,6 @@ public class Chosen : Entity
         //Debug.Log("Awake of Chosen");
     }
     public void addSpell(KeyValuePair<int, Spell> s){
-        if(spells == null){
-            Debug.Log("s");
-        }
         spells.Add(s.Key, s.Value);
     }
 
@@ -50,30 +53,30 @@ public class Chosen : Entity
  
     public void passTurn()
     {
-        MP = MPMAX;
-        powerGauge = powerGauge + powerRegen <= PWRGAUGEMAX ? powerGauge + powerRegen : PWRGAUGEMAX;
+        MP.Value = MPMAX;
+        powerGauge.Value = powerGauge.Value + powerRegen.Value <= PWRGAUGEMAX ? powerGauge.Value + powerRegen.Value : PWRGAUGEMAX;
     }
 
     private bool isDead()
     {
-        return HP<=0;
+        return HP.Value<=0;
     }
 
     public override bool targeted(Chosen caster, Spell s)
     {
         s.applyAllEffects(caster, this);
-        Debug.Log("HP remaining: " + HP);
+        Debug.Log("HP remaining: " + HP.Value);
         return isDead();
     }
 
     public void useSpell(Square square, Spell spell)
     {
-        if(powerGauge - spell.pwrCost >= 0){//if the chosen has enough power to cast the spell
-            powerGauge -= spell.pwrCost;
+        if(powerGauge.Value - spell.pwrCost >= 0){//if the chosen has enough power to cast the spell
+            powerGauge.Value -= spell.pwrCost;
             if (!square.isEmpty()){
                 square.entity.targeted(this, spell);
             }
-            Debug.Log("Power Gauge: " + powerGauge);
+            Debug.Log("Power Gauge: " + powerGauge.Value);
         } else {
             Debug.Log("You don't have enough power to use this spell!");
         }

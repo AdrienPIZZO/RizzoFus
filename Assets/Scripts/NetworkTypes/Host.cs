@@ -3,28 +3,59 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Netcode;
 
-public class Host : MonoBehaviour
+public class Host : Controler
 {
 
     private int selectionX = -1;
     private int selectionZ = -1;
     public bool isASpellSelected = false;
-    public Game game = null;
-    private bool init = false;
     public GameObject gamePrefab;
+    public GameObject gameHUDPrefab;
+    private HUDManager hm;
+
+
+    //Try to create prefab of the whole model to be able to spawn one all of it
+    /*
+    public GameObject test;
+    public GameObject testChild;
+    private GameObject finalTest;
+    */
+
     // Start is called before the first frame update
     void Start()
     {
+        //Try to create prefab of the whole model to be able to spawn one all of it
+        /*
+        GameObject testGO = Instantiate(test);
+        GameObject testChildGO = Instantiate(testChild);
+        testChildGO.transform.SetParent(testGO.transform);
+        //testGO.GetComponent<Test>().testChild = testGO.GetComponentInChildren<TestChild>();
+        testChildGO.AddComponent<TestChild>();
+        NetworkManager.Singleton.AddNetworkPrefab(testGO);
+        finalTest = Instantiate(testGO);
+        Destroy(testGO);
+        */
+        playerID = 0;
+        hm = Instantiate(gameHUDPrefab, GameObject.FindGameObjectWithTag("Canvas").transform.position, Quaternion.identity,
+        GameObject.FindGameObjectWithTag("Canvas").transform).GetComponent<HUDManager>();
         GameObject gameGO = Instantiate(gamePrefab) as GameObject;
         gameGO.GetComponent<NetworkObject>().Spawn();
         game = gameGO.GetComponent<Game>();
         game.init();
+        hm.initHUD(this);
         //gameGO.GetComponent<NetworkObject>().Spawn();
     }
 
     // Update is called once per frame
     void Update()
     {
+        //Try to create prefab of the whole model to be able to spawn one all of it
+        /*
+        if(Input.GetMouseButtonDown(0)){
+            finalTest.GetComponent<NetworkObject>().Spawn();
+        }
+        */
+        
         UpdateSelection();
         game.DrawGrid();
         game.board.DrawChosens();
@@ -35,18 +66,17 @@ public class Host : MonoBehaviour
                 Debug.Log(game.spellSelected.getName());
                 if(game.board.reachableSquares[selectionX, selectionZ]==2){
                     game.players[game.IDplayerTurn.Value].useSpell(game.lastSquareSelected, game.spellSelected);
-                    game.hm.updateHUDInfo();
+                    //game.hm.updateHUDInfo();
                 } else{
                     Debug.Log("Target out of reach!");
                 }
-                game.board.resetReachableSquares();
             } else if (game.board.IsSquareAvailable(selectionX, selectionZ)){
                 game.ChosenMove(selectionX, selectionZ);
-                //game.hm.updateHUDMP();
+                //hm.updateHUDMP();
             }
+            game.board.resetReachableSquares();
             game.spellSelected=null; //Unselect spell on click
         }
-
     }
 
     private void UpdateSelection()

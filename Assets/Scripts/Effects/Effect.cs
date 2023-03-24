@@ -20,8 +20,8 @@ public class PhysicalDamage : Effect
     }
 
     public override void apply(Chosen caster, Chosen target){
-        float result = (float) damage * (float) caster.strength * (100-(float) target.armor)/100; 
-        target.HP -= (int) result;
+        float result = (float) damage * (float) caster.strength.Value * (100-(float) target.armor.Value)/100; 
+        target.HP.Value -= (int) result;
     }
 
     public override void apply(Chosen caster, Obstacle target){

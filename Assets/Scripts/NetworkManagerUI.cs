@@ -16,13 +16,15 @@ public class NetworkManagerUI : MonoBehaviour
     [SerializeField] private List<GameObject> NetworkTypes;
     // Start is called before the first frame update
 
-    private void Awake(){             
-        serverBtn.onClick.AddListener(() => {
+    private void Awake(){       
+        NetworkManager.Singleton.NetworkConfig.ForceSamePrefabs = false;      
+            serverBtn.onClick.AddListener(() => {
             NetworkManager.Singleton.StartServer();
             Instantiate(NetworkTypes[0]);
         });
         hostBtn.onClick.AddListener(() => {
             NetworkManager.Singleton.StartHost();
+
             Instantiate(NetworkTypes[1]);
 
         });

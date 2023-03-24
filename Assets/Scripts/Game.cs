@@ -12,7 +12,6 @@ public class Game : NetworkBehaviour
     private int selectionZ = -1;
     public Spell spellSelected = null;
     public GameObject Canvas;
-    public HUDManager hm;
     public Square lastSquareSelected = null;
 
     //To be in server controler
@@ -28,7 +27,6 @@ public class Game : NetworkBehaviour
     public Board board; 
     public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
     
-
     public static Game Instance = null;
 
     private void Awake()
@@ -37,15 +35,12 @@ public class Game : NetworkBehaviour
         Game.Instance=this;
     }
 
-    private void Start()
+/*
+    protected override void OnSynchronize<T>(ref BufferSerializer<T> serializer)
     {
-
+        base.OnSynchronize(ref serializer);
     }
-
-    private void Update()
-    {
-
-    }
+*/
 
     public void init()
     {
@@ -83,6 +78,7 @@ public class Game : NetworkBehaviour
         jadePalm.effects.Add(new MoveTarget(board, 2));
         spells.Add(id++, jadePalm);
 
+        
         players = board.SpawnAllChosen();
 
         //Affect spell to chosen
@@ -124,7 +120,7 @@ public class Game : NetworkBehaviour
     {
         int distance = Utils.range(players[IDplayerTurn.Value].x.Value, players[IDplayerTurn.Value].z.Value, x, z);
         //Target Square too far from the chosen with his MP
-        if (distance > players[IDplayerTurn.Value].MP)
+        if (distance > players[IDplayerTurn.Value].MP.Value)
         {
             Debug.Log("You can't move that far.");
             return;
@@ -135,7 +131,7 @@ public class Game : NetworkBehaviour
         root = new Node(players[IDplayerTurn.Value].x.Value, players[IDplayerTurn.Value].z.Value);
         Node leaf = board.PathFinding(root, x, z, distance, leaves);  //We try first with number of MP = Range then we will increase this number if we didn't find a way
 
-        int tmpMP = players[IDplayerTurn.Value].MP;
+        int tmpMP = players[IDplayerTurn.Value].MP.Value;
         tmpMP -= distance;
 
         int leavesIndex = 0;
@@ -174,7 +170,7 @@ public class Game : NetworkBehaviour
         //Debug.Log("MP : " + tmpMP);
         //END PATHFINDING
 
-        players[IDplayerTurn.Value].MP = tmpMP; //MP left to the chosen after moving
+        players[IDplayerTurn.Value].MP.Value = tmpMP; //MP left to the chosen after moving
 
         //Moving entities
         board.setEntityAtPos(x, z, players[IDplayerTurn.Value]);
@@ -202,23 +198,25 @@ public class Game : NetworkBehaviour
 
     public void EndTurn()
     {
-        players[IDplayerTurn.Value].passTurn();
-        spellSelected = null;
-        board.resetReachableSquares();
-        IDplayerTurn.Value = (IDplayerTurn.Value + 1) % players.Count;
-        players[IDplayerTurn.Value].beginTurn();
-        hm.updateHUD();
-        hm.updateHUDInfo();
+        if(NetworkManager.Singleton.IsServer){
+            players[IDplayerTurn.Value].passTurn();
+            spellSelected = null;
+            board.resetReachableSquares();
+            IDplayerTurn.Value = (IDplayerTurn.Value + 1) % players.Count;
+            players[IDplayerTurn.Value].beginTurn();
+            //HUDManager.Singleton.updateHUD();
+        } else {
+            Debug.Log("Make pass turn request from client");
+            PassTurnRequestServerRpc();
+        }
+        //hm.updateHUD();
+        //hm.updateHUDInfo();
     }
 
     public void updateSpellSelected(int id)
     {
         spellSelected = spells[id];
         board.updateReachableSquare(spellSelected, (players[IDplayerTurn.Value].x.Value, players[IDplayerTurn.Value].z.Value));
-    }
-
-    override public void OnNetworkSpawn() {
-
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -238,5 +236,21 @@ public class Game : NetworkBehaviour
         } else{
             Debug.Log("Target out of reach!");
         }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void PassTurnRequestServerRpc()
+    {
+        Debug.Log("Pass turn by server");
+        EndTurn();
+        PassTurnReplyClientRpc();
+
+    }
+
+    [ClientRpc]
+    public void PassTurnReplyClientRpc()
+    {
+        Debug.Log("Reply from server to update hud on this client");
+        //HUDManager.Singleton.updateHUD();
     }
 }

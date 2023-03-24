@@ -8,6 +8,6 @@ public class Obstacle : Entity
     private void Awake()
     {
         Instances.Add(this);
-        Debug.Log("Awake of Obstacles");
+        //Debug.Log("Awake of Obstacles");
     }
 }
