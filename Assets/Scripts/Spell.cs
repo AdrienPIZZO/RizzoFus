@@ -55,6 +55,7 @@ public class Spell
             }
         }
     }
+
     public bool lineOfSight(Board board, (int, int) a, (int, int) b){
         bool los = true;
         (int, int) vect = Utils.getVector(a.Item1, a.Item2, b.Item1, b.Item2);
@@ -100,7 +101,8 @@ public class Spell
                 orientation = (-1, -1);
                 over = (-1, 0);
                 under = (0, -1);
-            }else{
+            }
+            else{
                 Debug.Log("Error call LOS algorithm for diagonal trajectory on a line trajectory!");
             }
             Fraction offset = new Fraction( ((int) Math.Round(board.getSquareSize())), 2 ); // TODO: calculate this once and store atribute in class

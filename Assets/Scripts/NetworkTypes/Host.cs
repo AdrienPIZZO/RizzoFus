@@ -14,48 +14,26 @@ public class Host : Controler
     private HUDManager hm;
 
 
-    //Try to create prefab of the whole model to be able to spawn one all of it
-    /*
-    public GameObject test;
-    public GameObject testChild;
-    private GameObject finalTest;
-    */
-
     // Start is called before the first frame update
     void Start()
     {
-        //Try to create prefab of the whole model to be able to spawn one all of it
-        /*
-        GameObject testGO = Instantiate(test);
-        GameObject testChildGO = Instantiate(testChild);
-        testChildGO.transform.SetParent(testGO.transform);
-        //testGO.GetComponent<Test>().testChild = testGO.GetComponentInChildren<TestChild>();
-        testChildGO.AddComponent<TestChild>();
-        NetworkManager.Singleton.AddNetworkPrefab(testGO);
-        finalTest = Instantiate(testGO);
-        Destroy(testGO);
-        */
-        playerID = 0;
-        hm = Instantiate(gameHUDPrefab, GameObject.FindGameObjectWithTag("Canvas").transform.position, Quaternion.identity,
-        GameObject.FindGameObjectWithTag("Canvas").transform).GetComponent<HUDManager>();
+        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnectedCallback;
         GameObject gameGO = Instantiate(gamePrefab) as GameObject;
         gameGO.GetComponent<NetworkObject>().Spawn();
         game = gameGO.GetComponent<Game>();
         game.init();
+
+        hm = Instantiate(gameHUDPrefab, GameObject.FindGameObjectWithTag("Canvas").transform.position, Quaternion.identity,
+        GameObject.FindGameObjectWithTag("Canvas").transform).GetComponent<HUDManager>();
+        Debug.Log("Client ID: " + NetworkManager.ServerClientId);
+        game.clients.Add(NetworkManager.ServerClientId);
+        game.playerID = 0;
         hm.initHUD(this);
-        //gameGO.GetComponent<NetworkObject>().Spawn();
     }
 
     // Update is called once per frame
     void Update()
     {
-        //Try to create prefab of the whole model to be able to spawn one all of it
-        /*
-        if(Input.GetMouseButtonDown(0)){
-            finalTest.GetComponent<NetworkObject>().Spawn();
-        }
-        */
-        
         UpdateSelection();
         game.DrawGrid();
         game.board.DrawChosens();
@@ -63,22 +41,21 @@ public class Host : Controler
             game.lastSquareSelected = game.board.squares[selectionX, selectionZ];
             if (game.spellSelected!=null)
             {
-                Debug.Log(game.spellSelected.getName());
+                Debug.Log("Spell selected: " + game.spellSelected.getName());
                 if(game.board.reachableSquares[selectionX, selectionZ]==2){
-                    game.players[game.IDplayerTurn.Value].useSpell(game.lastSquareSelected, game.spellSelected);
+                    game.chosens[game.IDplayerTurn.Value].useSpell(game.lastSquareSelected, game.spellSelected);
                     //game.hm.updateHUDInfo();
                 } else{
                     Debug.Log("Target out of reach!");
                 }
             } else if (game.board.IsSquareAvailable(selectionX, selectionZ)){
-                game.ChosenMove(selectionX, selectionZ);
-                //hm.updateHUDMP();
+                if (NetworkManager.ServerClientId == game.clients[game.IDplayerTurn.Value])
+                    game.ChosenMove(selectionX, selectionZ);
             }
             game.board.resetReachableSquares();
             game.spellSelected=null; //Unselect spell on click
         }
     }
-
     private void UpdateSelection()
     {
         if(!Camera.main)
@@ -96,7 +73,7 @@ public class Host : Controler
             selectionZ = -1;
         }
     }
-        public void DrawGrid(){ //TODO: Do better for redraw board model
+    public void DrawGrid(){ //TODO: Do better for redraw board model
         Vector3 widthLine = Vector3.right * game.board.getSquareSize() * game.board.getNbSquares();
         Vector3 heigthLine = Vector3.forward * game.board.getSquareSize() * game.board.getNbSquares();
         
@@ -115,6 +92,12 @@ public class Host : Controler
             Debug.DrawLine(Vector3.forward * selectionZ + Vector3.right * selectionX + game.transform.position,
             Vector3.forward * (selectionZ + 1) + Vector3.right * (selectionX + 1) + game.transform.position);
         }
+    }
+
+    private void OnClientConnectedCallback(ulong clientId)
+    {
+        Debug.Log("Client ID: " + clientId);
+        game.clients.Add(clientId);
     }
 }
 

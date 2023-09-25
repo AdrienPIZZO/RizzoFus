@@ -44,7 +44,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: faec7f5c0599a5045b88c0cf8ee5d263, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isASpellSelected: 0
   game: {fileID: 0}
+  playerID: -1
+  isASpellSelected: 0
   gameHUDPrefab: {fileID: 8323722165207637736, guid: 787dd73578c1b8548b9d50db67c9df9a,
     type: 3}

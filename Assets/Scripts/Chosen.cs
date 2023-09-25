@@ -6,6 +6,7 @@ using Unity.Netcode;
 
 public class Chosen : Entity
 {
+    public NetworkVariable<int> chosenID = new NetworkVariable<int>(-1);
     //STATS
     private const int MPMAX = 6;
     private const int HPMAX = 1000;
@@ -19,15 +20,18 @@ public class Chosen : Entity
     public NetworkVariable<int> powerRegen = new NetworkVariable<int>(50);
     public NetworkVariable<int> armor = new NetworkVariable<int>(10);
     public NetworkVariable<int> strength = new NetworkVariable<int>(5);// % based
-
     public Dictionary<int, Spell> spells = new Dictionary<int, Spell>();
     public List<Buff> buffs = new List<Buff>();
     public static List<Chosen> Instances = new List<Chosen>();
 
+    //TODO: Try to remove the need for static 
+    
     override public void OnNetworkSpawn(){
-        MP.OnValueChanged = HUDManager.Singleton.onMPChange;
-        HP.OnValueChanged = HUDManager.Singleton.onHPChange;
-        powerGauge.OnValueChanged = HUDManager.Singleton.onPowerGaugeChange;
+        if(IsClient){
+            MP.OnValueChanged = HUDManager.Singleton.onMPChange;
+            HP.OnValueChanged = HUDManager.Singleton.onHPChange;
+            powerGauge.OnValueChanged = HUDManager.Singleton.onPowerGaugeChange;
+        }
     }
 
     private void Awake()

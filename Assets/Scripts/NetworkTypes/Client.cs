@@ -11,34 +11,16 @@ public class Client : Controler
     private bool init = false;
     public GameObject gameHUDPrefab;
     private HUDManager hm;
-    
-
-    //Try to create prefab of the whole model to be able to spawn one all of it
-    /*
-    public GameObject test;
-    public GameObject testChild;
-    */
 
     // Start is called before the first frame update
     void Start()
     {
-        //Try to create prefab of the whole model to be able to spawn one all of it
-        /*
-        GameObject testGO = Instantiate(test);
-        GameObject testChildGO = Instantiate(testChild);
-        testChildGO.transform.SetParent(testGO.transform);
-        //testGO.GetComponent<Test>().testChild = testGO.GetComponentInChildren<TestChild>();
-        testChildGO.AddComponent<TestChild>();
-        NetworkManager.Singleton.AddNetworkPrefab(testGO);
-        Destroy(testGO);
-        */
 
-        //WARNIG if Instantiate is non blocking, it can start update without HUDManager singleton set
-        playerID = 1;
+        //WARNIG if Instantiate is non blocking, it can start update without HUDManager singleton being set
         enabled = false;
         GameObject canvas = GameObject.FindGameObjectWithTag("Canvas");
-        hm = Instantiate(gameHUDPrefab, GameObject.FindGameObjectWithTag("Canvas").transform.position,
-        Quaternion.identity, GameObject.FindGameObjectWithTag("Canvas").transform).GetComponent<HUDManager>();
+        hm = Instantiate(gameHUDPrefab, canvas.transform.position,
+        Quaternion.identity, canvas.transform).GetComponent<HUDManager>();
         StartCoroutine(WaitInit(1));
     }
 
@@ -51,8 +33,8 @@ public class Client : Controler
             game.lastSquareSelected = game.board.squares[selectionX, selectionZ];
             if (game.spellSelected!=null)
             {
-                Debug.Log(game.spellSelected.getName());
-                //game.SpellServerRpc(idSpel);
+                Debug.Log("Spell selected: " + game.spellSelected.getName());
+                game.SpellRequestServerRpc(game.spellSelectedID, selectionX, selectionZ);
                 
             } else if (game.board.IsSquareAvailable(selectionX, selectionZ)){
                 game.MoveRequestServerRpc(selectionX, selectionZ);
@@ -74,27 +56,31 @@ public class Client : Controler
     private bool isInitialized(){
         if(Game.Instance != null && Board.Instance != null && Plane.Instance != null 
         && Board.Instance.nbSquaresNetwork.Value != 0 && Board.Instance.nbPlayers.Value != 0 && Board.Instance.nbObstacles.Value != 0){
+
             if(Board.Instance.nbPlayers.Value == Chosen.Instances.Count && Board.Instance.nbObstacles.Value == Obstacle.Instances.Count &&
             Board.Instance.nbSquaresNetwork.Value*Board.Instance.nbSquaresNetwork.Value == Square.Instances.Count){
                 bool areAllSquarePosInit = true;
                 foreach(Square square in Square.Instances){
                     if(square.x.Value==-1 || square.z.Value==-1){
                         areAllSquarePosInit=false;
+                        
                     }
                 }
                 foreach(Chosen chosen in Chosen.Instances){
-                    if(chosen.x.Value==-1 || chosen.z.Value==-1){
+                    if(chosen.x.Value==-1 || chosen.z.Value==-1 || chosen.chosenID.Value==-1){
                         areAllSquarePosInit=false;
+
                     }
                 }
                 foreach(Obstacle obstacle in Obstacle.Instances){
                     if(obstacle.x.Value==-1 || obstacle.z.Value==-1){
                         areAllSquarePosInit=false;
+
                     }
                 }
                 if(areAllSquarePosInit){
                     initialize();
-                    Debug.Log("INIT CLIENT SUCCESS!");
+                    //Debug.Log("INIT CLIENT SUCCESS!");
                     return true;
                 }
             }
@@ -111,7 +97,7 @@ public class Client : Controler
             game.board.squares[square.x.Value, square.z.Value] = square;
         }
         foreach(Chosen chosen in Chosen.Instances){
-            game.players.Add(chosen);
+            game.chosens.Add(chosen.chosenID.Value, chosen);
             game.board.squares[chosen.x.Value, chosen.z.Value].entity = chosen;
         }
         foreach(Obstacle obstacle in Obstacle.Instances){
@@ -148,21 +134,25 @@ public class Client : Controler
         game.spells.Add(id++, jadePalm);
 
         //Affect spell to chosen
-        game.players[0].addSpell(new KeyValuePair<int, Spell> (0, game.spells[0]));
-        game.players[0].addSpell(new KeyValuePair<int, Spell> (1, game.spells[1]));
-        game.players[0].addSpell(new KeyValuePair<int, Spell> (2, game.spells[2]));
+        game.chosens[0].addSpell(new KeyValuePair<int, Spell> (0, game.spells[0]));
+        game.chosens[0].addSpell(new KeyValuePair<int, Spell> (1, game.spells[1]));
+        game.chosens[0].addSpell(new KeyValuePair<int, Spell> (2, game.spells[2]));
 
-        game.players[1].addSpell(new KeyValuePair<int, Spell> (3, game.spells[3]));
-        game.players[1].addSpell(new KeyValuePair<int, Spell> (4, game.spells[4]));
-        game.players[1].addSpell(new KeyValuePair<int, Spell> (5, game.spells[5]));
+        game.chosens[1].addSpell(new KeyValuePair<int, Spell> (3, game.spells[3]));
+        game.chosens[1].addSpell(new KeyValuePair<int, Spell> (4, game.spells[4]));
+        game.chosens[1].addSpell(new KeyValuePair<int, Spell> (5, game.spells[5]));
         
         for(int x=0; x<game.board.nbSquaresNetwork.Value; x++){
             for (int z=0; z<game.board.nbSquaresNetwork.Value; z++){
                 game.board.squares[x,z].GetComponent<MeshRenderer>().material = game.board.materials[game.board.getIndexPrefabSquare(x,z)];
             }
         }
+  
+        game.playerID = (int) NetworkManager.Singleton.LocalClientId - 1;
+        Debug.Log("player ID = " + game.playerID);
 
         hm.initHUD(this);
+
     }
 
     private void UpdateSelection()
@@ -182,7 +172,7 @@ public class Client : Controler
             selectionZ = -1;
         }
     }
-        public void DrawGrid(){ //TODO: Do better for redraw board model
+    public void DrawGrid(){ //TODO: Do better for redraw board model
         Vector3 widthLine = Vector3.right * game.board.getSquareSize() * game.board.getNbSquares();
         Vector3 heigthLine = Vector3.forward * game.board.getSquareSize() * game.board.getNbSquares();
         
@@ -194,7 +184,6 @@ public class Client : Controler
                 Debug.DrawLine(start + game.transform.position, start + heigthLine + game.transform.position);
             }
         }
-
         // Draw selection
         if(selectionX >= 0 && selectionZ >= 0)
         {
@@ -202,4 +191,5 @@ public class Client : Controler
             Vector3.forward * (selectionZ + 1) + Vector3.right * (selectionX + 1) + game.transform.position);
         }
     }
+
 }

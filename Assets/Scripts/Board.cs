@@ -169,24 +169,51 @@ public class Board : NetworkBehaviour
         //go.GetComponent<NetworkObject>().Spawn();
     }
 
-    public List<Chosen> SpawnAllChosen()
+    public Dictionary<int, Chosen> SpawnAllChosen()
     {
-        List<Chosen> players = new List<Chosen>();
-        players.Add(SpawnChosen(2, 7, 7));
-        players.Add(SpawnChosen(2, 0, 0));
+        Dictionary<int, Chosen> chosens = new Dictionary<int, Chosen>();
+        Chosen p1, p2;
+        p1 = SpawnChosen(2, 0, 0);
+        p2 = SpawnChosen(2, 15, 15);
+
+        p1.chosenID.Value = 0;
+        chosens.Add(0, p1);
+
+        p2.chosenID.Value = 1;
+        chosens.Add(1, p2);
+
         nbPlayers.Value=2;
-        return players;
+
+
+        return chosens;
     }
 
     private void SpawnAllObstacles()
     {
+        /*
         SpawnObstacle(3, 2, 2);
         SpawnObstacle(3, 3, 0);
         SpawnObstacle(3, 2, 0);
         SpawnObstacle(3, 1, 0);
         SpawnObstacle(3, 2, 1);
         SpawnObstacle(3, 5, 5);
-        nbObstacles.Value=6;
+        */
+        SpawnObstacle(3, 2, 2);
+        SpawnObstacle(3, 2, 3);
+        SpawnObstacle(3, 2, 4);
+        SpawnObstacle(3, 4, 11);
+        SpawnObstacle(3, 4, 12);
+        SpawnObstacle(3, 4, 13);
+        SpawnObstacle(3, 6, 7);
+
+        SpawnObstacle(3, 13, 13);
+        SpawnObstacle(3, 13, 12);
+        SpawnObstacle(3, 13, 11);
+        SpawnObstacle(3, 11, 5);
+        SpawnObstacle(3, 11, 4);
+        SpawnObstacle(3, 11, 3);
+        SpawnObstacle(3, 9, 8);
+        nbObstacles.Value=14;
     }
     
     public Node PathFinding(Node current, int x, int z, int nbMP, List<Node> leaves){

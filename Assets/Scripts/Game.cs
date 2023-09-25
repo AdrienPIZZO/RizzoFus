@@ -11,17 +11,17 @@ public class Game : NetworkBehaviour
     private int selectionX = -1;
     private int selectionZ = -1;
     public Spell spellSelected = null;
+    public int spellSelectedID = -1;
     public GameObject Canvas;
     public Square lastSquareSelected = null;
-
+    public int playerID = -1;
     //To be in server controler
     public List<GameObject> prefabs;
-
     //Dans les 2
-    //public int playerTurn = 0;
     public NetworkVariable<int> IDplayerTurn = new NetworkVariable<int>(-1);
-    public List<Chosen> players = new List<Chosen>();
-
+    //public List<Chosen> chosens = new List<Chosen>();
+    public Dictionary<int, Chosen> chosens = new Dictionary<int, Chosen>();
+    public List<ulong> clients =  new List<ulong>();
     private Node root;
     private List<Node> leaves = new List<Node>();
     public Board board; 
@@ -31,7 +31,6 @@ public class Game : NetworkBehaviour
 
     private void Awake()
     {
-        //Debug.Log("Awake of Game");
         Game.Instance=this;
     }
 
@@ -79,16 +78,16 @@ public class Game : NetworkBehaviour
         spells.Add(id++, jadePalm);
 
         
-        players = board.SpawnAllChosen();
+        chosens = board.SpawnAllChosen();
 
         //Affect spell to chosen
-        players[0].addSpell(new KeyValuePair<int, Spell> (0, spells[0]));
-        players[0].addSpell(new KeyValuePair<int, Spell> (1, spells[1]));
-        players[0].addSpell(new KeyValuePair<int, Spell> (2, spells[2]));
+        chosens[0].addSpell(new KeyValuePair<int, Spell> (0, spells[0]));
+        chosens[0].addSpell(new KeyValuePair<int, Spell> (1, spells[1]));
+        chosens[0].addSpell(new KeyValuePair<int, Spell> (2, spells[2]));
 
-        players[1].addSpell(new KeyValuePair<int, Spell> (3, spells[3]));
-        players[1].addSpell(new KeyValuePair<int, Spell> (4, spells[4]));
-        players[1].addSpell(new KeyValuePair<int, Spell> (5, spells[5]));
+        chosens[1].addSpell(new KeyValuePair<int, Spell> (3, spells[3]));
+        chosens[1].addSpell(new KeyValuePair<int, Spell> (4, spells[4]));
+        chosens[1].addSpell(new KeyValuePair<int, Spell> (5, spells[5]));
 
         IDplayerTurn.Value = 0;
 
@@ -118,9 +117,9 @@ public class Game : NetworkBehaviour
 
     public void ChosenMove(int x, int z)
     {
-        int distance = Utils.range(players[IDplayerTurn.Value].x.Value, players[IDplayerTurn.Value].z.Value, x, z);
+        int distance = Utils.range(chosens[IDplayerTurn.Value].x.Value, chosens[IDplayerTurn.Value].z.Value, x, z);
         //Target Square too far from the chosen with his MP
-        if (distance > players[IDplayerTurn.Value].MP.Value)
+        if (distance > chosens[IDplayerTurn.Value].MP.Value)
         {
             Debug.Log("You can't move that far.");
             return;
@@ -128,10 +127,10 @@ public class Game : NetworkBehaviour
 
         //PATHFINDING
         // We try to find the quickest path from current x/z to targeted x/z
-        root = new Node(players[IDplayerTurn.Value].x.Value, players[IDplayerTurn.Value].z.Value);
+        root = new Node(chosens[IDplayerTurn.Value].x.Value, chosens[IDplayerTurn.Value].z.Value);
         Node leaf = board.PathFinding(root, x, z, distance, leaves);  //We try first with number of MP = Range then we will increase this number if we didn't find a way
 
-        int tmpMP = players[IDplayerTurn.Value].MP.Value;
+        int tmpMP = chosens[IDplayerTurn.Value].MP.Value;
         tmpMP -= distance;
 
         int leavesIndex = 0;
@@ -144,7 +143,7 @@ public class Game : NetworkBehaviour
                 leaf = board.PathFinding(leaves[i], x, z, 1, leaves);
                 if (leaf != null)
                 {
-                    Debug.Log("mp : " + tmpMP);
+                    Debug.Log("Remaining MP : " + tmpMP);
                     break;
                 }
             }
@@ -170,12 +169,12 @@ public class Game : NetworkBehaviour
         //Debug.Log("MP : " + tmpMP);
         //END PATHFINDING
 
-        players[IDplayerTurn.Value].MP.Value = tmpMP; //MP left to the chosen after moving
+        chosens[IDplayerTurn.Value].MP.Value = tmpMP; //MP left to the chosen after moving
 
         //Moving entities
-        board.setEntityAtPos(x, z, players[IDplayerTurn.Value]);
-        board.setEntityAtPos(players[IDplayerTurn.Value].x.Value, players[IDplayerTurn.Value].z.Value, null);
-        players[IDplayerTurn.Value].ModifyExistingPosition(x, z);
+        board.setEntityAtPos(x, z, chosens[IDplayerTurn.Value]);
+        board.setEntityAtPos(chosens[IDplayerTurn.Value].x.Value, chosens[IDplayerTurn.Value].z.Value, null);
+        chosens[IDplayerTurn.Value].ModifyExistingPosition(x, z);
     }
 
     public void UpdateSelection()
@@ -198,17 +197,19 @@ public class Game : NetworkBehaviour
 
     public void EndTurn()
     {
-        if(NetworkManager.Singleton.IsServer){
-            players[IDplayerTurn.Value].passTurn();
-            spellSelected = null;
-            board.resetReachableSquares();
-            IDplayerTurn.Value = (IDplayerTurn.Value + 1) % players.Count;
-            players[IDplayerTurn.Value].beginTurn();
-            //HUDManager.Singleton.updateHUD();
-        } else {
+       /* if(NetworkManager.Singleton.IsServer){
+            if (NetworkManager.ServerClientId == clients[IDplayerTurn.Value]){
+                chosens[IDplayerTurn.Value].passTurn();
+                spellSelected = null;
+                board.resetReachableSquares();
+                IDplayerTurn.Value = (IDplayerTurn.Value + 1) % chosens.Count;
+                chosens[IDplayerTurn.Value].beginTurn();
+                //HUDManager.Singleton.updateHUD();
+            }
+        } else {*/
             Debug.Log("Make pass turn request from client");
             PassTurnRequestServerRpc();
-        }
+        //}
         //hm.updateHUD();
         //hm.updateHUDInfo();
     }
@@ -216,41 +217,48 @@ public class Game : NetworkBehaviour
     public void updateSpellSelected(int id)
     {
         spellSelected = spells[id];
-        board.updateReachableSquare(spellSelected, (players[IDplayerTurn.Value].x.Value, players[IDplayerTurn.Value].z.Value));
+        spellSelectedID = id;
+        board.updateReachableSquare(spellSelected, (chosens[playerID].x.Value, chosens[playerID].z.Value));
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void MoveRequestServerRpc(int x, int z)
+    public void MoveRequestServerRpc(int x, int z, ServerRpcParams serverRpcParams = default)
     {
         Debug.Log("Move request received from client to this server");
-        ChosenMove(x, z);
+        ulong clientId = serverRpcParams.Receive.SenderClientId;
+        if (clientId == clients[IDplayerTurn.Value])
+            ChosenMove(x, z);
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void SpellRequestServerRpc(int idSpell, int x, int z)
+    public void SpellRequestServerRpc(int idSpell, int x, int z, ServerRpcParams serverRpcParams = default)
     {
+        
         Debug.Log("Spell request received from client to this server");
-        Debug.Log(spells[idSpell].getName());
-        if(board.reachableSquares[x, z]==2){
-            players[IDplayerTurn.Value].useSpell(board.squares[x, z], spells[idSpell]);
-        } else{
-            Debug.Log("Target out of reach!");
+        ulong clientId = serverRpcParams.Receive.SenderClientId;
+        if (clientId == clients[IDplayerTurn.Value]){
+            Debug.Log(spells[idSpell].getName());
+            spells[idSpell].computeReachableSquares(board, (chosens[(int) clientId - 1].x.Value, chosens[(int) clientId - 1].z.Value));
+            if(board.reachableSquares[x, z]==2){
+                chosens[IDplayerTurn.Value].useSpell(board.squares[x, z], spells[idSpell]);
+            } else{
+                Debug.Log("Target out of reach!");
+            }
         }
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void PassTurnRequestServerRpc()
+    public void PassTurnRequestServerRpc(ServerRpcParams serverRpcParams = default)
     {
-        Debug.Log("Pass turn by server");
-        EndTurn();
-        PassTurnReplyClientRpc();
+        Debug.Log("Pass turn request received by server");
+        ulong clientId = serverRpcParams.Receive.SenderClientId;
+        if (clientId == clients[IDplayerTurn.Value]){
+            chosens[IDplayerTurn.Value].passTurn();
+            spellSelected = null;
+            board.resetReachableSquares();
+            IDplayerTurn.Value = (IDplayerTurn.Value + 1) % chosens.Count;
+            chosens[IDplayerTurn.Value].beginTurn();
+        }
 
-    }
-
-    [ClientRpc]
-    public void PassTurnReplyClientRpc()
-    {
-        Debug.Log("Reply from server to update hud on this client");
-        //HUDManager.Singleton.updateHUD();
     }
 }
